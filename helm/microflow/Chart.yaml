@@ -1,0 +1,31 @@
+apiVersion: v2
+name: microflow
+description: A Helm chart for deploying the Microflow microservices platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: "Microflow Team"
+    email: "support@microflow.dev"
+keywords:
+  - microservices
+  - react
+  - nodejs
+
+dependencies:
+  - name: prometheus
+    version: "25.8.0"
+    repository: "https://prometheus-community.github.io/helm-charts"
+  - name: grafana
+    version: "7.0.3"
+    repository: "https://grafana.github.io/helm-charts"
+  - name: kiali-operator
+    version: "1.75.0"
+    repository: "https://kiali.org/helm-charts"
+  - name: istio-base
+    version: "1.20.1"
+    repository: "https://istio-release.storage.googleapis.com/charts"
+  - name: istiod
+    version: "1.20.1"
+    repository: "https://istio-release.storage.googleapis.com/charts"
+    condition: istiod.enabled

@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "microflow.fullname" . }}-frontend
+  labels:
+    {{- include "microflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    matchLabels:
+      {{- include "microflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  endpoints:
+    - port: http
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "microflow.fullname" . }}-user
+  labels:
+    {{- include "microflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: user
+spec:
+  selector:
+    matchLabels:
+      {{- include "microflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: user
+  endpoints:
+    - port: http

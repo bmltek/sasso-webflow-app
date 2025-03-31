@@ -1,0 +1,162 @@
+# Default values for microflow
+replicaCount:
+  frontend: 2
+  user: 2
+
+image:
+  repository: microflow
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  sidecar.istio.io/inject: "true"
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  frontend:
+    type: ClusterIP
+    port: 80
+  user:
+    type: ClusterIP
+    port: 4002
+
+ingress:
+  enabled: true
+  className: "istio"
+  annotations:
+    kubernetes.io/ingress.class: istio
+  hosts:
+    - host: microflow.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api/user
+          pathType: Prefix
+          service: user
+  tls: []
+
+resources:
+  frontend:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  user:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  frontend:
+    VITE_USER_API_URL: "http://user-service:4002"
+    VITE_SUPABASE_URL: ""
+    VITE_SUPABASE_ANON_KEY: ""
+  user:
+    PORT: "4002"
+    SUPABASE_URL: ""
+    SUPABASE_ANON_KEY: ""
+
+# Istio Configuration
+istiod:
+  enabled: true
+
+# Prometheus Configuration
+prometheus:
+  alertmanager:
+    enabled: true
+  server:
+    retention: "15d"
+  pushgateway:
+    enabled: true
+  nodeExporter:
+    enabled: true
+  kubeStateMetrics:
+    enabled: true
+
+# Grafana Configuration
+grafana:
+  adminPassword: "admin"
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-server
+          access: proxy
+          isDefault: true
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards
+  dashboards:
+    default:
+      istio-mesh:
+        gnetId: 7639
+        revision: 1
+        datasource: Prometheus
+      istio-service:
+        gnetId: 7636
+        revision: 1
+        datasource: Prometheus
+      istio-workload:
+        gnetId: 7630
+        revision: 1
+        datasource: Prometheus
+
+# Kiali Configuration
+kiali-operator:
+  cr:
+    create: true
+    name: kiali
+    spec:
+      auth:
+        strategy: anonymous
+      deployment:
+        accessible_namespaces:
+          - "**"
+      external_services:
+        prometheus:
+          url: http://prometheus-server
+        grafana:
+          url: http://grafana
+      istio_namespace: istio-system
