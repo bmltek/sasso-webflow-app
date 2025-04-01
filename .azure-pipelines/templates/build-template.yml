@@ -1,0 +1,16 @@
+parameters:
+  serviceName: ''
+  serviceDirectory: ''
+
+steps:
+- task: Docker@2
+  displayName: 'Build and Push ${{ parameters.serviceName }}'
+  inputs:
+    containerRegistry: $(ACR_SERVICE_CONNECTION)
+    repository: '${{ parameters.serviceName }}'
+    command: buildAndPush
+    Dockerfile: ${{ parameters.serviceDirectory }}/Dockerfile
+    tags: |
+      $(Build.BuildId)
+      latest
+    buildContext: ${{ parameters.serviceDirectory }}

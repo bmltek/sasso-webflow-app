@@ -1,0 +1,27 @@
+steps:
+- task: HelmInstaller@1
+  inputs:
+    helmVersionToInstall: 'latest'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: $(AZURE_SUBSCRIPTION)
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az aks get-credentials \
+        --resource-group $(RESOURCE_GROUP) \
+        --name $(AKS_CLUSTER_NAME)
+
+- task: HelmDeploy@0
+  inputs:
+    command: 'upgrade'
+    chartType: 'FilePath'
+    chartPath: './helm/microflow'
+    releaseName: 'sasso-services'
+    namespace: 'production'
+    arguments: >
+      --install 
+      --create-namespace
+      --set imageTag=$(Build.BuildId)
+      --values ./helm/microflow/values-production.yaml

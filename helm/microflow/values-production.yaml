@@ -1,0 +1,30 @@
+services:
+  user:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: $(ACR_NAME).azurecr.io/user-service
+      tag: $(Build.BuildId)
+    service:
+      type: LoadBalancer
+      port: 4002
+
+  metrics:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: $(ACR_NAME).azurecr.io/metrics-service
+      tag: $(Build.BuildId)
+    service:
+      type: LoadBalancer
+      port: 4003
+
+  analytics:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: $(ACR_NAME).azurecr.io/analytics-service
+      tag: $(Build.BuildId)
+    service:
+      type: LoadBalancer
+      port: 4004

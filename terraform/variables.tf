@@ -1,50 +1,43 @@
 variable "prefix" {
-  description = "A prefix used for all resources"
-  type        = string
-  default     = "microflow"
+  description = "Prefix for all resources"
+  default     = "sasso"
 }
 
 variable "location" {
-  description = "The Azure Region in which all resources should be created."
-  type        = string
+  description = "Azure region"
   default     = "eastus"
 }
 
 variable "kubernetes_version" {
   description = "Kubernetes version"
-  type        = string
-  default     = "1.28"
+  default     = "1.27.7"
 }
 
 variable "node_count" {
-  description = "The initial number of nodes which should exist in the Node Pool"
-  type        = number
-  default     = 2
+  description = "Number of AKS nodes"
+  default     = 3
 }
 
 variable "min_node_count" {
-  description = "The minimum number of nodes which should exist in the Node Pool"
-  type        = number
+  description = "Minimum number of nodes"
   default     = 1
 }
 
 variable "max_node_count" {
-  description = "The maximum number of nodes which should exist in the Node Pool"
-  type        = number
-  default     = 10
+  description = "Maximum number of nodes"
+  default     = 5
 }
 
 variable "vm_size" {
-  description = "The size of the Virtual Machine"
-  type        = string
-  default     = "Standard_D2s_v3"
+  description = "VM size"
+  default     = "Standard_DS2_v2"
 }
 
 variable "tags" {
-  description = "A mapping of tags to assign to the resource"
+  description = "Tags for resources"
   type        = map(string)
-  default = {
+  default     = {
     Environment = "Production"
-    Project     = "Microflow"
+    ManagedBy   = "Terraform"
   }
 }

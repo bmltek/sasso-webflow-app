@@ -2,9 +2,11 @@
 replicaCount:
   frontend: 2
   user: 2
+  metrics: 2
+  analytics: 2
 
 image:
-  repository: microflow
+  repository: sassoacr.azurecr.io
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -17,8 +19,7 @@ serviceAccount:
   annotations: {}
   name: ""
 
-podAnnotations:
-  sidecar.istio.io/inject: "true"
+podAnnotations: {}
 
 podSecurityContext: {}
 
@@ -26,27 +27,23 @@ securityContext: {}
 
 service:
   frontend:
-    type: ClusterIP
+    type: LoadBalancer
     port: 80
+    targetPort: 80
   user:
-    type: ClusterIP
+    type: LoadBalancer
     port: 4002
+    targetPort: 4002
+  metrics:
+    type: LoadBalancer
+    port: 4003
+    targetPort: 4003
+  analytics:
+    type: LoadBalancer
+    port: 4004
+    targetPort: 4004
 
-ingress:
-  enabled: true
-  className: "istio"
-  annotations:
-    kubernetes.io/ingress.class: istio
-  hosts:
-    - host: microflow.local
-      paths:
-        - path: /
-          pathType: Prefix
-          service: frontend
-        - path: /api/user
-          pathType: Prefix
-          service: user
-  tls: []
+# Removed ingress configuration since we're using LoadBalancer
 
 resources:
   frontend:
@@ -57,6 +54,20 @@ resources:
       cpu: 200m
       memory: 256Mi
   user:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  metrics:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  analytics:
     limits:
       cpu: 500m
       memory: 512Mi
@@ -79,13 +90,17 @@ affinity: {}
 
 env:
   frontend:
-    VITE_USER_API_URL: "http://user-service:4002"
+    VITE_USER_API_URL: ""
     VITE_SUPABASE_URL: ""
     VITE_SUPABASE_ANON_KEY: ""
   user:
     PORT: "4002"
     SUPABASE_URL: ""
     SUPABASE_ANON_KEY: ""
+  metrics:
+    PORT: "4003"
+  analytics:
+    PORT: "4004"
 
 # Istio Configuration
 istiod:
@@ -111,23 +126,23 @@ grafana:
     datasources.yaml:
       apiVersion: 1
       datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-server
-          access: proxy
-          isDefault: true
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server
+        access: proxy
+        isDefault: true
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-        - name: 'default'
-          orgId: 1
-          folder: ''
-          type: file
-          disableDeletion: false
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
   dashboards:
     default:
       istio-mesh:
@@ -153,7 +168,7 @@ kiali-operator:
         strategy: anonymous
       deployment:
         accessible_namespaces:
-          - "**"
+        - "**"
       external_services:
         prometheus:
           url: http://prometheus-server
