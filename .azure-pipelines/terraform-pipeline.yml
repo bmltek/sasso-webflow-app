@@ -47,5 +47,5 @@ stages:
         provider: 'azurerm'
         command: 'apply'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        commandOptions: 'tfplan'
+        commandOptions: '-auto-approve'
         environmentServiceNameAzureRM: 'AZURE_SUBSCRIPTION'
