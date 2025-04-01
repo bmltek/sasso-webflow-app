@@ -1,57 +1,57 @@
-# resource "azurerm_resource_group" "tfstate" {
-#   name     = "sasso-tfstate-rg"
-#   location = "westeurope"
-#   tags = {
-#     environment = "dev"
-#     project     = "sasso-webflow"
-#   }
-# }
+resource "azurerm_resource_group" "tfstate" {
+  name     = "sasso-tfstate-rg"
+  location = "westeurope"
+  tags = {
+    environment = "dev"
+    project     = "sasso-webflow"
+  }
+}
 
-# resource "azurerm_storage_account" "tfstate" {
-#   name                     = "tfstat56eterraform45"
-#   resource_group_name      = azurerm_resource_group.tfstate.name
-#   location                 = azurerm_resource_group.tfstate.location
-#   account_tier             = "Standard"
-#   account_replication_type = "LRS"
-#   min_tls_version          = "TLS1_2"
+resource "azurerm_storage_account" "tfstate" {
+  name                     = "tfstat56eterraform45"
+  resource_group_name      = azurerm_resource_group.tfstate.name
+  location                 = azurerm_resource_group.tfstate.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_version          = "TLS1_2"
 
-#   blob_properties {
-#     versioning_enabled = true
-#   }
+  blob_properties {
+    versioning_enabled = true
+  }
 
-#   tags = {
-#     environment = "dev"
-#     project     = "sasso-webflow"
-#   }
-# }
+  tags = {
+    environment = "dev"
+    project     = "sasso-webflow"
+  }
+}
 
-# resource "azurerm_storage_container" "tfstate" {
-#   name                  = "tfstate"
-#   storage_account_name  = azurerm_storage_account.tfstate.name
-#   container_access_type = "private"
-# }
+resource "azurerm_storage_container" "tfstate" {
+  name                  = "tfstate"
+  storage_account_name  = azurerm_storage_account.tfstate.name
+  container_access_type = "private"
+}
 
-# resource "azurerm_resource_group" "aks" {
-#   name     = "sasso-aks-rg"
-#   location = "westeurope"
-#   tags = {
-#     environment = "dev"
-#     project     = "sasso-webflow"
-#   }
-# }
+resource "azurerm_resource_group" "aks" {
+  name     = "sasso-aks-rg"
+  location = "westeurope"
+  tags = {
+    environment = "dev"
+    project     = "sasso-webflow"
+  }
+}
 
-# resource "azurerm_container_registry" "acr" {
-#   name                = "sassoacr"
-#   resource_group_name = azurerm_resource_group.aks.name
-#   location            = azurerm_resource_group.aks.location
-#   sku                 = "Standard"
-#   admin_enabled       = true
+resource "azurerm_container_registry" "acr" {
+  name                = "sassoacr"
+  resource_group_name = azurerm_resource_group.aks.name
+  location            = azurerm_resource_group.aks.location
+  sku                 = "Standard"
+  admin_enabled       = true
 
-#   tags = {
-#     environment = "dev"
-#     project     = "sasso-webflow"
-#   }
-# }
+  tags = {
+    environment = "dev"
+    project     = "sasso-webflow"
+  }
+}
 
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "sasso-aks"
