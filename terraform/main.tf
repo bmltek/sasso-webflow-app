@@ -1,10 +1,9 @@
-# Resource Group for AKS and related resources
+
 resource "azurerm_resource_group" "aks" {
   name     = "${var.prefix}-rg"
   location = var.location
 }
 
-# ACR
 resource "azurerm_container_registry" "acr" {
   name                = "${var.prefix}acr"
   resource_group_name = azurerm_resource_group.aks.name
@@ -14,13 +13,12 @@ resource "azurerm_container_registry" "acr" {
   tags                = var.tags
 }
 
-# AKS
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "${var.prefix}-aks"
   location            = azurerm_resource_group.aks.location
   resource_group_name = azurerm_resource_group.aks.name
   dns_prefix          = "${var.prefix}-aks"
-  kubernetes_version  = var.kubernetes_version
+  kubernetes_version  = var.kubernetes_version  # Will use updated value from variables.tf
 
   default_node_pool {
     name                = "default"
@@ -51,7 +49,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   depends_on = [azurerm_container_registry.acr]
 }
 
-# Log Analytics Workspace
 resource "azurerm_log_analytics_workspace" "aks" {
   name                = "${var.prefix}-law"
   location            = azurerm_resource_group.aks.location
@@ -60,7 +57,6 @@ resource "azurerm_log_analytics_workspace" "aks" {
   retention_in_days   = 30
 }
 
-# Diagnostic Settings with enabled_log
 resource "azurerm_monitor_diagnostic_setting" "aks" {
   name                       = "aks-diagnostics"
   target_resource_id         = azurerm_kubernetes_cluster.aks.id
@@ -92,7 +88,6 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   }
 }
 
-# Role Assignments
 resource "azurerm_role_assignment" "aks_acr" {
   principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
   role_definition_name             = "AcrPull"
