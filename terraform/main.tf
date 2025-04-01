@@ -1,4 +1,3 @@
-
 resource "azurerm_resource_group" "aks" {
   name     = "${var.prefix}-rg"
   location = var.location
@@ -13,12 +12,20 @@ resource "azurerm_container_registry" "acr" {
   tags                = var.tags
 }
 
+resource "azurerm_log_analytics_workspace" "aks" {
+  name                = "${var.prefix}-law"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "${var.prefix}-aks"
   location            = azurerm_resource_group.aks.location
   resource_group_name = azurerm_resource_group.aks.name
   dns_prefix          = "${var.prefix}-aks"
-  kubernetes_version  = var.kubernetes_version  # Will use updated value from variables.tf
+  kubernetes_version  = var.kubernetes_version
 
   default_node_pool {
     name                = "default"
@@ -45,16 +52,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     scale_down_unneeded        = "15m"
   }
 
-  tags       = var.tags
-  depends_on = [azurerm_container_registry.acr]
-}
-
-resource "azurerm_log_analytics_workspace" "aks" {
-  name                = "${var.prefix}-law"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
+  tags = var.tags
 }
 
 resource "azurerm_monitor_diagnostic_setting" "aks" {
@@ -86,6 +84,8 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
     category = "AllMetrics"
     enabled  = true
   }
+
+  depends_on = [azurerm_kubernetes_cluster.aks, azurerm_log_analytics_workspace.aks]
 }
 
 resource "azurerm_role_assignment" "aks_acr" {
@@ -93,10 +93,12 @@ resource "azurerm_role_assignment" "aks_acr" {
   role_definition_name             = "AcrPull"
   scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
+  depends_on                       = [azurerm_kubernetes_cluster.aks, azurerm_container_registry.acr]
 }
 
 resource "azurerm_role_assignment" "aks_acr_pull" {
   principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
   role_definition_name = "AcrPull"
   scope                = azurerm_container_registry.acr.id
+  depends_on           = [azurerm_kubernetes_cluster.aks, azurerm_container_registry.acr]
 }
