@@ -10,12 +10,33 @@ resource "random_string" "acr_suffix" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                = "${var.prefix}acr${random_string.acr_suffix.result}"
+  name                = "sasso${random_string.acr_suffix.result}acr"
   resource_group_name = azurerm_resource_group.aks.name
   location            = azurerm_resource_group.aks.location
   sku                 = "Standard"
   admin_enabled       = true
   tags                = var.tags
+}
+
+resource "azurerm_storage_account" "tfstate" {
+  name                     = "tfstate${random_string.acr_suffix.result}"
+  resource_group_name      = azurerm_resource_group.aks.name
+  location                 = azurerm_resource_group.aks.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_version         = "TLS1_2"
+
+  blob_properties {
+    versioning_enabled = true
+  }
+
+  tags = var.tags
+}
+
+resource "azurerm_storage_container" "tfstate" {
+  name                  = "tfstate"
+  storage_account_name  = azurerm_storage_account.tfstate.name
+  container_access_type = "private"
 }
 
 resource "azurerm_log_analytics_workspace" "aks" {

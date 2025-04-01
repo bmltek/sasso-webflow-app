@@ -1,13 +1,13 @@
 variable "prefix" {
   description = "Prefix for resource names"
   type        = string
-  default     = "sasso-webflow"
+  default     = "sasso"
 }
 
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "West Europe"
+  default     = "westeurope"
 }
 
 variable "kubernetes_version" {
