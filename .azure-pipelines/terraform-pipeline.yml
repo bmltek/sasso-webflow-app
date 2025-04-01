@@ -26,9 +26,9 @@ stages:
         provider: 'azurerm'
         command: 'init'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        backendServiceArm: '$(AZURE_SUBSCRIPTION)'
-        backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
-        backendAzureRmStorageAccountName: 'tfstat56eterraform45'
+        backendServiceArm: '$(AZURE_SUBSCRIPTION)'  # Ensure this resolves to your service connection name
+        backendAzureRmResourceGroupName: 'terraform-state-rg'
+        backendAzureRmStorageAccountName: 'tfstatesasso'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'terraform.tfstate'
 
