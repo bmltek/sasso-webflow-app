@@ -1,43 +1,50 @@
 variable "prefix" {
-  description = "Prefix for all resources"
+  description = "Prefix for resource names"
+  type        = string
   default     = "sasso"
 }
 
 variable "location" {
-  description = "Azure region"
-  default     = "eastus"
+  description = "Azure region for resources"
+  type        = string
+  default     = "East US"
 }
 
 variable "kubernetes_version" {
-  description = "Kubernetes version"
-  default     = "1.27.7"
+  description = "Kubernetes version for AKS"
+  type        = string
+  default     = "1.28"
 }
 
 variable "node_count" {
-  description = "Number of AKS nodes"
-  default     = 3
+  description = "Initial number of nodes"
+  type        = number
+  default     = 2
+}
+
+variable "vm_size" {
+  description = "VM size for AKS nodes"
+  type        = string
+  default     = "Standard_DS2_v2"
 }
 
 variable "min_node_count" {
-  description = "Minimum number of nodes"
+  description = "Minimum number of nodes for autoscaling"
+  type        = number
   default     = 1
 }
 
 variable "max_node_count" {
-  description = "Maximum number of nodes"
+  description = "Maximum number of nodes for autoscaling"
+  type        = number
   default     = 5
 }
 
-variable "vm_size" {
-  description = "VM size"
-  default     = "Standard_DS2_v2"
-}
-
 variable "tags" {
-  description = "Tags for resources"
+  description = "Tags to apply to resources"
   type        = map(string)
   default     = {
-    Environment = "Production"
-    ManagedBy   = "Terraform"
+    environment = "dev"
+    project     = "sasso-webflow"
   }
 }

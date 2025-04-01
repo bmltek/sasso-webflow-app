@@ -1,18 +1,20 @@
+# Resource Group for AKS and related resources
 resource "azurerm_resource_group" "aks" {
   name     = "${var.prefix}-rg"
   location = var.location
 }
 
+# ACR
 resource "azurerm_container_registry" "acr" {
   name                = "${var.prefix}acr"
   resource_group_name = azurerm_resource_group.aks.name
   location            = azurerm_resource_group.aks.location
   sku                 = "Standard"
   admin_enabled       = true
-
-  tags = var.tags
+  tags                = var.tags
 }
 
+# AKS
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "${var.prefix}-aks"
   location            = azurerm_resource_group.aks.location
@@ -45,11 +47,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
     scale_down_unneeded        = "15m"
   }
 
-  tags = var.tags
-
-  depends_on = [azurerm_container_registry.acr]  # Added dependency as requested
+  tags       = var.tags
+  depends_on = [azurerm_container_registry.acr]
 }
 
+# Log Analytics Workspace
 resource "azurerm_log_analytics_workspace" "aks" {
   name                = "${var.prefix}-law"
   location            = azurerm_resource_group.aks.location
@@ -58,34 +60,30 @@ resource "azurerm_log_analytics_workspace" "aks" {
   retention_in_days   = 30
 }
 
+# Diagnostic Settings with enabled_log
 resource "azurerm_monitor_diagnostic_setting" "aks" {
   name                       = "aks-diagnostics"
   target_resource_id         = azurerm_kubernetes_cluster.aks.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
 
-  log {
+  enabled_log {
     category = "kube-apiserver"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "kube-audit"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "kube-controller-manager"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "kube-scheduler"
-    enabled  = true
   }
 
-  log {
-    category = "kube-autoscaler"
-    enabled  = true
+  enabled_log {
+    category = "cluster-autoscaler"
   }
 
   metric {
@@ -94,7 +92,7 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   }
 }
 
-# Role assignment for AKS kubelet identity to pull from ACR
+# Role Assignments
 resource "azurerm_role_assignment" "aks_acr" {
   principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
   role_definition_name             = "AcrPull"
@@ -102,7 +100,6 @@ resource "azurerm_role_assignment" "aks_acr" {
   skip_service_principal_aad_check = true
 }
 
-# Role assignment for AKS system-assigned identity to pull from ACR
 resource "azurerm_role_assignment" "aks_acr_pull" {
   principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
   role_definition_name = "AcrPull"
