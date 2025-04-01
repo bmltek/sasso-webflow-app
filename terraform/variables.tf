@@ -13,7 +13,7 @@ variable "location" {
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string
-  default     = "1.26.3"
+  default     = "1.28"
 }
 
 variable "node_count" {

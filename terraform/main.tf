@@ -67,7 +67,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = azurerm_resource_group.aks.location
   resource_group_name = azurerm_resource_group.aks.name
   dns_prefix          = "sasso-aks"
-  kubernetes_version  = "1.26.3"
+  kubernetes_version  = "1.24.9"
 
   default_node_pool {
     name       = "default"
