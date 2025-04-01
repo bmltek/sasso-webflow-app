@@ -1,9 +1,9 @@
 name: 'Terraform Infrastructure'
 
-trigger: none  # Manual trigger only for infrastructure changes
+trigger: none
 
 variables:
-  - group: terraform-config  # Variable group defined in Azure DevOps Library
+  - group: terraform-config
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -26,7 +26,7 @@ stages:
         provider: 'azurerm'
         command: 'init'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+        backendServiceArm: 'AZURE_SUBSCRIPTION'
         backendAzureRmResourceGroupName: 'terraform-state-rg'
         backendAzureRmStorageAccountName: 'tfstatesasso'
         backendAzureRmContainerName: 'tfstate'
@@ -38,17 +38,8 @@ stages:
         provider: 'azurerm'
         command: 'plan'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
         commandOptions: '-out=tfplan'
-        # Add variables from your terraform configuration
-        variableGroups: |
-          - terraform-config
-        variables: |
-          -var="prefix=$(PREFIX)"
-          -var="location=$(LOCATION)"
-          -var="kubernetes_version=$(KUBERNETES_VERSION)"
-          -var="node_count=$(NODE_COUNT)"
-          -var="vm_size=$(VM_SIZE)"
+        environmentServiceNameAzureRM: 'AZURE_SUBSCRIPTION'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Apply'
@@ -56,5 +47,5 @@ stages:
         provider: 'azurerm'
         command: 'apply'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
-        commandOptions: '-auto-approve'
+        commandOptions: 'tfplan'
+        environmentServiceNameAzureRM: 'AZURE_SUBSCRIPTION'
