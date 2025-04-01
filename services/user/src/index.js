@@ -51,7 +51,10 @@ app.patch('/profile', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
 app.listen(port, '0.0.0.0', () => {
   console.log(`User service running on port ${port}`);
 });

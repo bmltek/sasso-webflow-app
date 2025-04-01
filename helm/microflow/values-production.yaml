@@ -1,20 +1,30 @@
+global:
+  environment: production
+
 services:
   user:
     enabled: true
     replicaCount: 2
     image:
-      repository: $(ACR_NAME).azurecr.io/user-service
-      tag: $(Build.BuildId)
+      repository: ${ACR_NAME}.azurecr.io/user-service
+      tag: latest
     service:
       type: LoadBalancer
       port: 4002
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
 
   metrics:
     enabled: true
     replicaCount: 2
     image:
-      repository: $(ACR_NAME).azurecr.io/metrics-service
-      tag: $(Build.BuildId)
+      repository: ${ACR_NAME}.azurecr.io/metrics-service
+      tag: latest
     service:
       type: LoadBalancer
       port: 4003
@@ -23,8 +33,8 @@ services:
     enabled: true
     replicaCount: 2
     image:
-      repository: $(ACR_NAME).azurecr.io/analytics-service
-      tag: $(Build.BuildId)
+      repository: ${ACR_NAME}.azurecr.io/analytics-service
+      tag: latest
     service:
       type: LoadBalancer
       port: 4004

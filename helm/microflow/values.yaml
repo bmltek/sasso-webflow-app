@@ -1,177 +1,114 @@
-# Default values for microflow
-replicaCount:
-  frontend: 2
-  user: 2
-  metrics: 2
-  analytics: 2
+# Global configuration
+global:
+  environment: production
+  imageRegistry: ${ACR_NAME}.azurecr.io
+  imagePullSecrets:
+  - name: acr-auth-secret
 
-image:
-  repository: sassoacr.azurecr.io
-  pullPolicy: IfNotPresent
-  tag: "latest"
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-
-securityContext: {}
-
-service:
-  frontend:
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ${ACR_NAME}.azurecr.io/frontend
+    tag: latest
+    pullPolicy: Always
+  imagePullSecrets:
+  - name: acr-auth-secret
+  service:
     type: LoadBalancer
     port: 80
     targetPort: 80
-  user:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 30
+  env:
+    VITE_API_URL: http://user-service:4002
+    NODE_ENV: production
+
+# User Service configuration
+user:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ${ACR_NAME}.azurecr.io/user-service
+    tag: latest
+  imagePullSecrets:
+  - name: acr-auth-secret
+  service:
     type: LoadBalancer
     port: 4002
     targetPort: 4002
-  metrics:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 30
+
+# Metrics Service configuration
+metrics:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ${ACR_NAME}.azurecr.io/metrics-service
+    tag: latest
+  imagePullSecrets:
+  - name: acr-auth-secret
+  service:
     type: LoadBalancer
     port: 4003
     targetPort: 4003
-  analytics:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 30
+
+# Analytics Service configuration
+analytics:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ${ACR_NAME}.azurecr.io/analytics-service
+    tag: latest
+  imagePullSecrets:
+  - name: acr-auth-secret
+  service:
     type: LoadBalancer
     port: 4004
     targetPort: 4004
-
-# Removed ingress configuration since we're using LoadBalancer
-
-resources:
-  frontend:
+  resources:
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: "500m"
+      memory: "512Mi"
     requests:
-      cpu: 200m
-      memory: 256Mi
-  user:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 200m
-      memory: 256Mi
-  metrics:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 200m
-      memory: 256Mi
-  analytics:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 200m
-      memory: 256Mi
-
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 5
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-env:
-  frontend:
-    VITE_USER_API_URL: ""
-    VITE_SUPABASE_URL: ""
-    VITE_SUPABASE_ANON_KEY: ""
-  user:
-    PORT: "4002"
-    SUPABASE_URL: ""
-    SUPABASE_ANON_KEY: ""
-  metrics:
-    PORT: "4003"
-  analytics:
-    PORT: "4004"
-
-# Istio Configuration
-istiod:
-  enabled: true
-
-# Prometheus Configuration
-prometheus:
-  alertmanager:
+      cpu: "200m"
+      memory: "256Mi"
+  livenessProbe:
     enabled: true
-  server:
-    retention: "15d"
-  pushgateway:
-    enabled: true
-  nodeExporter:
-    enabled: true
-  kubeStateMetrics:
-    enabled: true
-
-# Grafana Configuration
-grafana:
-  adminPassword: "admin"
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-      - name: Prometheus
-        type: prometheus
-        url: http://prometheus-server
-        access: proxy
-        isDefault: true
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-      - name: 'default'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards
-  dashboards:
-    default:
-      istio-mesh:
-        gnetId: 7639
-        revision: 1
-        datasource: Prometheus
-      istio-service:
-        gnetId: 7636
-        revision: 1
-        datasource: Prometheus
-      istio-workload:
-        gnetId: 7630
-        revision: 1
-        datasource: Prometheus
-
-# Kiali Configuration
-kiali-operator:
-  cr:
-    create: true
-    name: kiali
-    spec:
-      auth:
-        strategy: anonymous
-      deployment:
-        accessible_namespaces:
-        - "**"
-      external_services:
-        prometheus:
-          url: http://prometheus-server
-        grafana:
-          url: http://grafana
-      istio_namespace: istio-system
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 30

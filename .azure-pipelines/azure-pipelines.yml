@@ -4,8 +4,8 @@ trigger:
     - main
   paths:
     include:
-    - services/*
     - frontend/*
+    - services/*
     - helm/*
 
 variables:
@@ -14,35 +14,174 @@ variables:
     value: 'ubuntu-latest'
 
 stages:
-- stage: Build
+- stage: CodeAnalysis
+  displayName: 'Code Analysis'
   jobs:
-  - job: BuildServices
+  - job: SonarAnalysis
     pool:
-      vmImage: $(vmImageName)
+      vmImage: 'ubuntu-latest'
     steps:
-    - task: Docker@2
-      displayName: Login to ACR
+    - task: SonarQubePrepare@5
       inputs:
-        command: login
-        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        SonarQube: 'SonarQube'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'sasso-webflow'
+        cliProjectName: 'Sasso Webflow'
+        cliSources: '.'
+        extraProperties: |
+          sonar.sources=src,services
+          sonar.tests=src/**/*.test.ts,services/**/*.test.ts
+          sonar.javascript.lcov.reportPaths=**/coverage/lcov.info
+          sonar.coverage.exclusions=**/*.test.ts,**/*.spec.ts,**/tests/**/*
+          sonar.test.inclusions=**/*.test.ts,**/*.spec.ts
 
-    # Build and push services
-    - ${{ each service in parameters.services }}:
-      - template: templates/build-service.yml
-        parameters:
-          serviceName: ${{ service }}
-          serviceDirectory: services/${{ service }}
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
 
-- stage: Deploy
-  dependsOn: Build
+    # Run tests with coverage for each service
+    - script: |
+        services=("frontend" "user" "metrics" "analytics")
+        for service in "${services[@]}"
+        do
+          echo "Running tests for $service..."
+          cd $service
+          npm ci
+          npm run test:coverage
+          cd ..
+        done
+      displayName: 'Run Tests with Coverage'
+
+    - task: SonarQubeAnalyze@5
+    - task: SonarQubePublish@5
+      inputs:
+        pollingTimeoutSec: '300'
+
+    # Publish code coverage results
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+        reportDirectory: '**/coverage'
+
+    - task: Bash@3
+      displayName: 'Check Quality Gate'
+      inputs:
+        targetType: 'inline'
+        script: |
+          sleep 10 # Wait for SonarQube to process
+          QUALITY_GATE_STATUS=$(curl -s -u $(SONAR_TOKEN): "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=sasso-webflow" | jq -r '.projectStatus.status')
+          if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
+            echo "Quality gate failed with status: $QUALITY_GATE_STATUS"
+            exit 1
+          fi
+
+- stage: Build
+  dependsOn: CodeAnalysis
   condition: succeeded()
   jobs:
-  - deployment: DeployToAKS
-    environment: 'production'
+  - job: BuildAll
     pool:
       vmImage: $(vmImageName)
+    strategy:
+      matrix:
+        frontend:
+          servicePath: frontend
+          serviceName: frontend
+          dockerfilePath: frontend/Dockerfile
+          port: 80
+        user:
+          servicePath: services/user
+          serviceName: user-service
+          dockerfilePath: services/user/Dockerfile
+          port: 4002
+        metrics:
+          servicePath: services/metrics
+          serviceName: metrics-service
+          dockerfilePath: services/metrics/Dockerfile
+          port: 4003
+        analytics:
+          servicePath: services/analytics
+          serviceName: analytics-service
+          dockerfilePath: services/analytics/Dockerfile
+          port: 4004
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: $(serviceName)
+        command: buildAndPush
+        Dockerfile: $(dockerfilePath)
+        tags: |
+          $(Build.BuildId)
+          latest
+        arguments: --build-arg NODE_ENV=production
+
+- stage: Test
+  jobs:
+  - job: RunTests
+    strategy:
+      matrix:
+        frontend:
+          servicePath: frontend
+        user:
+          servicePath: services/user
+        metrics:
+          servicePath: services/metrics
+        analytics:
+          servicePath: services/analytics
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+    - script: |
+        cd $(servicePath)
+        npm ci
+        npm test
+      displayName: 'Run Tests for $(servicePath)'
+
+- stage: Deploy
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: DeployToAKS
+    environment: production
     strategy:
       runOnce:
         deploy:
           steps:
-          - template: templates/deploy-services.yml
+          - task: HelmDeploy@0
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscription: $(AZURE_SUBSCRIPTION)
+              azureResourceGroup: $(RESOURCE_GROUP)
+              kubernetesCluster: $(AKS_CLUSTER_NAME)
+              command: upgrade
+              chartType: FilePath
+              chartPath: helm/microflow
+              releaseName: sasso-services
+              arguments: >
+                --install 
+                --namespace production 
+                --create-namespace
+                --set global.imageTag=$(Build.BuildId)
+                --set frontend.image.tag=$(Build.BuildId)
+                --set user.image.tag=$(Build.BuildId)
+                --set metrics.image.tag=$(Build.BuildId)
+                --set analytics.image.tag=$(Build.BuildId)
+
+          - task: Bash@3
+            displayName: 'Verify Deployment'
+            inputs:
+              targetType: 'inline'
+              script: |
+                services=("frontend" "user-service" "metrics-service" "analytics-service")
+                for service in "${services[@]}"
+                do
+                  echo "Verifying $service..."
+                  kubectl rollout status deployment/$service -n production --timeout=300s
+                  
+                  IP=$(kubectl get service $service -n production -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+                  PORT=$(kubectl get service $service -n production -o jsonpath='{.spec.ports[0].port}')
+                  echo "$service is available at: http://$IP:$PORT"
+                done

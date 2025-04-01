@@ -1,6 +1,6 @@
-import express from 'express';
-import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
+import cors from 'cors';
+import express from 'express';
 
 const app = express();
 const port = process.env.PORT || 4003;
@@ -57,6 +57,10 @@ app.post('/metrics', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
 });
 
 app.listen(port, '0.0.0.0', () => {

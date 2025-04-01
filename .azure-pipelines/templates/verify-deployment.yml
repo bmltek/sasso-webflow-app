@@ -1,0 +1,68 @@
+parameters:
+  namespace: 'production'
+  services:
+    - name: frontend
+      port: 80
+    - name: user-service
+      port: 4002
+    - name: metrics-service
+      port: 4003
+    - name: analytics-service
+      port: 4004
+
+steps:
+- task: Bash@3
+  displayName: 'Verify Service Deployments'
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Function to check service health
+      check_service_health() {
+        local service=$1
+        local port=$2
+        local retries=5
+        local wait_time=30
+        
+        echo "Checking $service deployment..."
+        
+        # Wait for deployment rollout
+        kubectl rollout status deployment/$service -n ${{ parameters.namespace }} --timeout=300s
+        if [ $? -ne 0 ]; then
+          echo "Deployment rollout failed for $service"
+          kubectl describe deployment/$service -n ${{ parameters.namespace }}
+          kubectl logs -l app=$service -n ${{ parameters.namespace }} --tail=100
+          exit 1
+        fi
+        
+        # Get service IP
+        local IP=$(kubectl get service $service -n ${{ parameters.namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        
+        # Wait for IP to be assigned
+        while [ -z "$IP" ] && [ $retries -gt 0 ]; do
+          echo "Waiting for $service IP address... ($retries attempts remaining)"
+          sleep $wait_time
+          IP=$(kubectl get service $service -n ${{ parameters.namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          retries=$((retries-1))
+        done
+        
+        if [ -z "$IP" ]; then
+          echo "Failed to get IP address for $service"
+          kubectl describe service/$service -n ${{ parameters.namespace }}
+          exit 1
+        fi
+        
+        # Check health endpoint
+        echo "Testing $service health endpoint at http://$IP:$port/health"
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://$IP:$port/health)
+        if [ "$response" != "200" ]; then
+          echo "$service health check failed with response code $response"
+          exit 1
+        fi
+        
+        echo "$service is healthy and accessible at http://$IP:$port"
+      }
+      
+      # Check each service
+      {{- range .services }}
+      check_service_health "{{ .name }}" {{ .port }}
+      {{- end }}

@@ -1,7 +1,6 @@
-import express from 'express';
-import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
-import { format } from 'date-fns';
+import cors from 'cors';
+import express from 'express';
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -25,7 +24,7 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.status(200).json({ status: 'healthy' });
 });
 
 app.get('/metrics', async (req, res) => {
