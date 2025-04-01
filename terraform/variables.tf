@@ -1,7 +1,7 @@
 variable "prefix" {
   description = "Prefix for resource names"
   type        = string
-  default     = "sasso"
+  default     = "sasso-webflow"
 }
 
 variable "location" {
@@ -13,7 +13,7 @@ variable "location" {
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string
-  default     = "1.24.10"
+  default     = "1.25.6"
 }
 
 variable "node_count" {
