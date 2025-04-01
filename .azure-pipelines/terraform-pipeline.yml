@@ -1,0 +1,60 @@
+name: 'Terraform Infrastructure'
+
+trigger: none  # Manual trigger only for infrastructure changes
+
+variables:
+  - group: terraform-config  # Variable group defined in Azure DevOps Library
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Terraform
+  displayName: 'Deploy Terraform Infrastructure'
+  jobs:
+  - job: Terraform
+    displayName: 'Terraform Provisioning'
+    steps:
+    - task: TerraformInstaller@0
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Init'
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+        backendAzureRmResourceGroupName: 'terraform-state-rg'
+        backendAzureRmStorageAccountName: 'tfstatesasso'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'terraform.tfstate'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Plan'
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+        commandOptions: '-out=tfplan'
+        # Add variables from your terraform configuration
+        variableGroups: |
+          - terraform-config
+        variables: |
+          -var="prefix=$(PREFIX)"
+          -var="location=$(LOCATION)"
+          -var="kubernetes_version=$(KUBERNETES_VERSION)"
+          -var="node_count=$(NODE_COUNT)"
+          -var="vm_size=$(VM_SIZE)"
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Apply'
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+        commandOptions: '-auto-approve'

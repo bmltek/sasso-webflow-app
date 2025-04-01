@@ -1,3 +1,20 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+  
+  backend "azurerm" {
+    # Backend will be configured via Azure Pipeline
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "aks" {
   name     = "${var.prefix}-rg"
   location = var.location
@@ -87,4 +104,15 @@ resource "azurerm_role_assignment" "aks_acr" {
   role_definition_name             = "AcrPull"
   scope                           = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
+}
+
+# Add ACR resource
+resource "azurerm_container_registry" "acr" {
+  name                = "${var.prefix}acr"
+  resource_group_name = azurerm_resource_group.aks.name
+  location            = azurerm_resource_group.aks.location
+  sku                = "Standard"
+  admin_enabled      = true
+
+  tags = var.tags
 }
