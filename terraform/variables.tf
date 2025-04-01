@@ -7,13 +7,13 @@ variable "prefix" {
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "East US"
+  default     = "West Europe"
 }
 
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string
-  default     = "1.27.7"
+  default     = "1.30.1"
 }
 
 variable "node_count" {
