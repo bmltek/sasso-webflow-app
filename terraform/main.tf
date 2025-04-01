@@ -3,6 +3,16 @@ resource "azurerm_resource_group" "aks" {
   location = var.location
 }
 
+resource "azurerm_container_registry" "acr" {
+  name                = "${var.prefix}acr"
+  resource_group_name = azurerm_resource_group.aks.name
+  location            = azurerm_resource_group.aks.location
+  sku                 = "Standard"
+  admin_enabled       = true
+
+  tags = var.tags
+}
+
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "${var.prefix}-aks"
   location            = azurerm_resource_group.aks.location
@@ -15,9 +25,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     node_count          = var.node_count
     vm_size             = var.vm_size
     enable_auto_scaling = true
-    min_count          = var.min_node_count
-    max_count          = var.max_node_count
-    os_disk_size_gb    = 50
+    min_count           = var.min_node_count
+    max_count           = var.max_node_count
+    os_disk_size_gb     = 50
+    type                = "VirtualMachineScaleSets"
   }
 
   identity {
@@ -31,15 +42,25 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   auto_scaler_profile {
     scale_down_delay_after_add = "15m"
-    scale_down_unneeded       = "15m"
+    scale_down_unneeded        = "15m"
   }
 
   tags = var.tags
+
+  depends_on = [azurerm_container_registry.acr]  # Added dependency as requested
+}
+
+resource "azurerm_log_analytics_workspace" "aks" {
+  name                = "${var.prefix}-law"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_monitor_diagnostic_setting" "aks" {
   name                       = "aks-diagnostics"
-  target_resource_id        = azurerm_kubernetes_cluster.aks.id
+  target_resource_id         = azurerm_kubernetes_cluster.aks.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
 
   log {
@@ -63,7 +84,7 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   }
 
   log {
-    category = "cluster-autoscaler"
+    category = "kube-autoscaler"
     enabled  = true
   }
 
@@ -73,29 +94,17 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   }
 }
 
-resource "azurerm_log_analytics_workspace" "aks" {
-  name                = "${var.prefix}-law"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-# Add ACR role assignment for AKS
+# Role assignment for AKS kubelet identity to pull from ACR
 resource "azurerm_role_assignment" "aks_acr" {
   principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
   role_definition_name             = "AcrPull"
-  scope                           = azurerm_container_registry.acr.id
+  scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
 }
 
-# Add ACR resource
-resource "azurerm_container_registry" "acr" {
-  name                = "${var.prefix}acr"
-  resource_group_name = azurerm_resource_group.aks.name
-  location            = azurerm_resource_group.aks.location
-  sku                = "Standard"
-  admin_enabled      = true
-
-  tags = var.tags
+# Role assignment for AKS system-assigned identity to pull from ACR
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+  role_definition_name = "AcrPull"
+  scope                = azurerm_container_registry.acr.id
 }
