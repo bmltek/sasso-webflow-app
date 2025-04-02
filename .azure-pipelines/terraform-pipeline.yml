@@ -1,19 +1,43 @@
 name: 'Terraform Infrastructure'
 
+parameters:
+- name: createResourceGroup
+  displayName: 'Create New Resource Group'
+  type: boolean
+  default: false
+- name: environment
+  displayName: 'Environment'
+  type: string
+  default: 'dev'
+  values:
+  - dev
+  - staging
+  - prod
+- name: location
+  displayName: 'Azure Region'
+  type: string
+  default: 'westeurope'
+- name: aksNodeCount
+  displayName: 'AKS Node Count'
+  type: number
+  default: 2
+
 trigger: none
 
 variables:
   - group: terraform-config  # Must define AZURE_SUBSCRIPTION
+  - name: TF_WORKSPACE
+    value: ${{ parameters.environment }}
 
 pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-- stage: Terraform
-  displayName: 'Deploy Terraform Infrastructure'
+- stage: Validate
+  displayName: 'Validate Terraform'
   jobs:
-  - job: Terraform
-    displayName: 'Terraform Provisioning'
+  - job: Validate
+    displayName: 'Terraform Validation'
     steps:
     - task: TerraformInstaller@0
       displayName: 'Install Terraform'
@@ -30,7 +54,38 @@ stages:
         backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
         backendAzureRmStorageAccountName: 'tfstat56eterraform45'
         backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'terraform.tfstate'
+        backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Validate'
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+
+- stage: Plan
+  displayName: 'Plan Infrastructure Changes'
+  dependsOn: Validate
+  jobs:
+  - job: Plan
+    displayName: 'Terraform Plan'
+    steps:
+    - task: TerraformInstaller@0
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Init'
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+        backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
+        backendAzureRmStorageAccountName: 'tfstat56eterraform45'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Plan'
@@ -38,14 +93,49 @@ stages:
         provider: 'azurerm'
         command: 'plan'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        commandOptions: '-out=tfplan'
+        commandOptions: '-var="create_resource_group=${{ parameters.createResourceGroup }}" -var="environment=${{ parameters.environment }}" -var="location=${{ parameters.location }}" -var="node_count=${{ parameters.aksNodeCount }}" -out=$(Build.ArtifactStagingDirectory)/tfplan'
         environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
 
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Apply'
-      inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-        commandOptions: '-auto-approve'
-        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+    - publish: $(Build.ArtifactStagingDirectory)/tfplan
+      artifact: tfplan
+
+- stage: Apply
+  displayName: 'Apply Infrastructure Changes'
+  dependsOn: Plan
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'Terraform Apply'
+    environment: ${{ parameters.environment }}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: 'latest'
+
+          - download: current
+            artifact: tfplan
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+              backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
+              backendAzureRmStorageAccountName: 'tfstat56eterraform45'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              commandOptions: '$(Pipeline.Workspace)/tfplan/tfplan'
+              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'

@@ -1,3 +1,15 @@
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
+variable "create_resource_group" {
+  description = "Whether to create a new resource group or use an existing one"
+  type        = bool
+  default     = true
+}
+
 variable "prefix" {
   description = "Prefix for resource names"
   type        = string
@@ -13,7 +25,7 @@ variable "location" {
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string
-  default     = "1.30.10"
+  default     = "1.30.3"
 }
 
 variable "node_count" {
