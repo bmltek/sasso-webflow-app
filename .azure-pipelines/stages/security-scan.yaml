@@ -1,1 +1,30 @@
- 
+---
+parameters:
+  acrName: ''
+
+stages:
+- stage: SecurityScan
+  displayName: 'Security Scanning'
+  jobs:
+  - job: TrivyScan
+    steps:
+    - script: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3
+      displayName: 'Install Trivy'
+    
+    - script: |
+        for service in frontend metrics-service user-service; do
+          echo "Scanning $service Dockerfile"
+          trivy config --severity HIGH,CRITICAL --exit-code 1 ./$service/Dockerfile || true
+          
+          echo "Scanning $service dependencies"
+          trivy fs --severity HIGH,CRITICAL --exit-code 1 ./$service || true
+        done
+      displayName: 'Scan Dockerfiles and Dependencies'
+      continueOnError: true
+
+    - script: |
+        # Scan for secrets
+        trivy fs --security-checks secret .
+      displayName: 'Scan for Secrets'
+      continueOnError: true 
