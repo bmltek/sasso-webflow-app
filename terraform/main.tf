@@ -23,11 +23,7 @@ resource "azurerm_container_registry" "acr" {
 }
 
 # Random string for unique names
-resource "random_string" "storage_account" {
-  length  = 8
-  special = false
-  upper   = false
-}
+
 
 # Azure Kubernetes Service
 resource "azurerm_kubernetes_cluster" "aks" {
