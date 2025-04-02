@@ -1,7 +1,7 @@
 ---
 parameters:
-  sonarProjectKey: ''
-  sonarOrganization: ''
+  sonarProjectKey: 'princemike05_Sasso-Webflow'
+  sonarOrganization: 'princemike05'
 
 stages:
 - stage: CodeAnalysis
@@ -12,8 +12,8 @@ stages:
     - checkout: self
       fetchDepth: 0
       
-    - task: SonarQubePrepare@7
-      displayName: 'Prepare SonarQube Analysis'
+    - task: SonarQubePrepare@5
+      displayName: 'Prepare SonarCloud Analysis'
       inputs:
         SonarQube: '$(SONAR_SERVICE_CONNECTION)'
         scannerMode: 'CLI'
@@ -22,8 +22,8 @@ stages:
         cliProjectName: '${{ parameters.sonarProjectKey }}'
         cliSources: '.'
         extraProperties: |
-          sonar.organization=${{ parameters.sonarOrganization }}
           sonar.projectKey=${{ parameters.sonarProjectKey }}
+          sonar.organization=${{ parameters.sonarOrganization }}
           sonar.sources=src
           sonar.tests=src
           sonar.test.inclusions=**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx
@@ -32,6 +32,7 @@ stages:
           sonar.coverage.exclusions=**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx,**/tests/**/*
           sonar.cpd.exclusions=**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx
           sonar.sourceEncoding=UTF-8
+          sonar.verbose=true
 
     - task: Npm@1
       displayName: 'Install dependencies'
@@ -53,10 +54,10 @@ stages:
         workingDir: '.'
         customCommand: 'run test:coverage'
 
-    - task: SonarQubeAnalyze@7
-      displayName: 'Run SonarQube Analysis'
+    - task: SonarQubeAnalyze@5
+      displayName: 'Run SonarCloud Analysis'
 
-    - task: SonarQubePublish@7
+    - task: SonarQubePublish@5
       displayName: 'Publish Quality Gate Result'
       inputs:
         pollingTimeoutSec: '300'
