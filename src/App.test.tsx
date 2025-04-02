@@ -1,68 +1,88 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
+
+// Mock useNavigate
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+}));
 
 describe('App Component', () => {
   it('renders without crashing', () => {
     render(<App />);
-    expect(document.body).toBeDefined();
+    expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 
   it('renders main navigation elements', () => {
     render(<App />);
-    expect(screen.getByRole('navigation')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Analytics')).toBeInTheDocument();
+    expect(screen.getByText('Metrics')).toBeInTheDocument();
   });
 
-  it('displays the dashboard by default', () => {
+  it('handles search functionality', async () => {
     render(<App />);
-    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
-  });
-
-  it('handles navigation correctly', async () => {
-    render(<App />);
-    const user = userEvent.setup();
+    const searchInput = screen.getByPlaceholderText('Search...');
     
-    // Click analytics link
-    const analyticsLink = screen.getByText(/analytics/i);
-    await user.click(analyticsLink);
-    expect(screen.getByText(/analytics dashboard/i)).toBeInTheDocument();
-    
-    // Click metrics link
-    const metricsLink = screen.getByText(/metrics/i);
-    await user.click(metricsLink);
-    expect(screen.getByText(/metrics dashboard/i)).toBeInTheDocument();
-  });
-
-  it('handles user interactions in the dashboard', async () => {
-    render(<App />);
-    const user = userEvent.setup();
-
-    // Test search functionality
-    const searchInput = screen.getByPlaceholderText(/search/i);
-    await user.type(searchInput, 'test search');
+    await userEvent.type(searchInput, 'test search');
     expect(searchInput).toHaveValue('test search');
+  });
 
-    // Test filter functionality
-    const filterButton = screen.getByText(/filter/i);
-    await user.click(filterButton);
-    expect(screen.getByText(/filter options/i)).toBeInTheDocument();
+  it('toggles filter options when filter button is clicked', () => {
+    render(<App />);
+    const filterButton = screen.getByText('Filter');
+    
+    // Initially filter options should not be visible
+    expect(screen.queryByText('Filter options')).not.toBeInTheDocument();
+    
+    // Click filter button
+    fireEvent.click(filterButton);
+    
+    // Filter options should now be visible
+    expect(screen.getByText('Filter options')).toBeInTheDocument();
+    
+    // Click filter button again
+    fireEvent.click(filterButton);
+    
+    // Filter options should be hidden again
+    expect(screen.queryByText('Filter options')).not.toBeInTheDocument();
   });
 
   it('displays error boundary for component errors', () => {
-    const originalError = console.error;
-    console.error = jest.fn();
-
     const ThrowError = () => {
       throw new Error('Test error');
     };
 
-    render(
+    const { container } = render(
       <App>
         <ThrowError />
       </App>
     );
 
-    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
-    console.error = originalError;
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+  });
+
+  describe('Navigation', () => {
+    it('renders dashboard by default', () => {
+      render(<App />);
+      expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
+    });
+
+    it('renders analytics page when analytics link is clicked', async () => {
+      render(<App />);
+      const analyticsLink = screen.getByText('Analytics');
+      
+      await userEvent.click(analyticsLink);
+      expect(screen.getByText('Analytics Dashboard')).toBeInTheDocument();
+    });
+
+    it('renders metrics page when metrics link is clicked', async () => {
+      render(<App />);
+      const metricsLink = screen.getByText('Metrics');
+      
+      await userEvent.click(metricsLink);
+      expect(screen.getByText('Metrics Dashboard')).toBeInTheDocument();
+    });
   });
 }); 
