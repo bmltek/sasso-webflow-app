@@ -42,14 +42,14 @@ stages:
     - task: TerraformInstaller@0
       displayName: 'Install Terraform'
       inputs:
-        terraformVersion: 'latest'
+        terraformVersion: '1.5.7'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Init'
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
         backendServiceArm: '$(AZURE_SUBSCRIPTION)'
         backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
         backendAzureRmStorageAccountName: 'tfstat56eterraform45'
@@ -73,14 +73,14 @@ stages:
     - task: TerraformInstaller@0
       displayName: 'Install Terraform'
       inputs:
-        terraformVersion: 'latest'
+        terraformVersion: '1.5.7'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Init'
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
         backendServiceArm: '$(AZURE_SUBSCRIPTION)'
         backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
         backendAzureRmStorageAccountName: 'tfstat56eterraform45'
@@ -114,7 +114,7 @@ stages:
           - task: TerraformInstaller@0
             displayName: 'Install Terraform'
             inputs:
-              terraformVersion: 'latest'
+              terraformVersion: '1.5.7'
 
           - download: current
             artifact: tfplan
@@ -124,7 +124,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
               backendServiceArm: '$(AZURE_SUBSCRIPTION)'
               backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
               backendAzureRmStorageAccountName: 'tfstat56eterraform45'
