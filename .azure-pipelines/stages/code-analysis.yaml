@@ -69,4 +69,35 @@ stages:
         summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/lcov.info'
         pathToSources: '$(System.DefaultWorkingDirectory)/src'
         failIfCoverageEmpty: true
-        codecoverageTool: 'Cobertura' 
+        codecoverageTool: 'Cobertura'
+
+    - task: Docker@2
+      displayName: 'Build and scan frontend Docker image'
+      inputs:
+        command: 'build'
+        Dockerfile: 'frontend/Dockerfile'
+        repository: 'frontend'
+        tags: |
+          latest
+          $(Build.BuildId)
+        arguments: '--no-cache'
+
+    - task: Trivy@1
+      displayName: 'Scan frontend Docker image'
+      inputs:
+        image: 'frontend:latest'
+        severity: 'CRITICAL,HIGH'
+        format: 'table'
+        outputFile: 'trivy-frontend-results.txt'
+        ignoreUnfixed: true
+        vulnType: 'os,library'
+        scanners: 'vuln,config,secret'
+        skipFiles: '**/node_modules/**'
+        skipDirs: '**/node_modules/**'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Trivy scan results'
+      inputs:
+        targetPath: 'trivy-frontend-results.txt'
+        artifact: 'trivy-results'
+        publishLocation: 'pipeline' 

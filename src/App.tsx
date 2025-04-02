@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import Features from './pages/Features';
 
 // Components
 const Dashboard = () => (
@@ -49,6 +50,7 @@ const App: React.FC = () => {
               <li><Link to="/">Dashboard</Link></li>
               <li><Link to="/analytics">Analytics</Link></li>
               <li><Link to="/metrics">Metrics</Link></li>
+              <li><Link to="/features">Features</Link></li>
             </ul>
           </nav>
 
@@ -75,6 +77,7 @@ const App: React.FC = () => {
               <Route path="/" element={<Dashboard />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/metrics" element={<Metrics />} />
+              <Route path="/features" element={<Features />} />
             </Routes>
           </main>
         </div>
