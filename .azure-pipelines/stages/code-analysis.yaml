@@ -12,7 +12,7 @@ stages:
     - checkout: self
       fetchDepth: 0
       
-    - task: SonarQubePrepare@6
+    - task: SonarQubePrepare@7
       displayName: 'Prepare SonarQube Analysis'
       inputs:
         SonarQube: '$(SONAR_SERVICE_CONNECTION)'
@@ -46,10 +46,10 @@ stages:
         workingDir: '.'
         customCommand: 'run test:coverage'
 
-    - task: SonarQubeAnalyze@6
+    - task: SonarQubeAnalyze@7
       displayName: 'Run SonarQube Analysis'
 
-    - task: SonarQubePublish@6
+    - task: SonarQubePublish@5
       displayName: 'Publish Quality Gate Result'
       inputs:
         pollingTimeoutSec: '300'
