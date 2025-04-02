@@ -4,7 +4,7 @@ parameters:
 - name: createResourceGroup
   displayName: 'Create New Resource Group'
   type: boolean
-  default: false
+  default: true
 - name: environment
   displayName: 'Environment'
   type: string
