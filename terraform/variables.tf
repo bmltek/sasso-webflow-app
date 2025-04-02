@@ -7,7 +7,7 @@ variable "environment" {
 variable "create_resource_group" {
   description = "Whether to create a new resource group or use an existing one"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "prefix" {
