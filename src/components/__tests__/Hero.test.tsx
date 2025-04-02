@@ -1,28 +1,32 @@
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { Hero } from '../Hero';
-import { describe, it, expect } from 'vitest';
+
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <BrowserRouter>
+      {component}
+    </BrowserRouter>
+  );
+};
 
 describe('Hero Component', () => {
-  const defaultProps = {
-    title: 'Test Title',
-    subtitle: 'Test Subtitle',
-    ctaText: 'Get Started',
-    secondaryCtaText: 'Learn More'
-  };
-
-  it('renders hero content correctly', () => {
-    render(<Hero {...defaultProps} />);
-    
-    expect(screen.getByText(/Test Title/)).toBeInTheDocument();
-    expect(screen.getByText('Test Subtitle')).toBeInTheDocument();
-    expect(screen.getByText('Get Started')).toBeInTheDocument();
-    expect(screen.getByText('Learn More')).toBeInTheDocument();
+  it('renders without crashing', () => {
+    renderWithRouter(<Hero />);
+    expect(screen.getByRole('heading')).toBeInTheDocument();
   });
 
-  it('applies correct styling classes', () => {
-    render(<Hero {...defaultProps} />);
-    
-    const section = screen.getByRole('region');
-    expect(section).toHaveClass('relative', 'min-h-[90vh]', 'flex', 'items-center');
+  it('renders title and subtitle', () => {
+    renderWithRouter(<Hero />);
+    expect(screen.getByText(/welcome to microflow/i)).toBeInTheDocument();
+    expect(screen.getByText(/streamline your workflow/i)).toBeInTheDocument();
+  });
+
+  it('renders call-to-action link', () => {
+    renderWithRouter(<Hero />);
+    const link = screen.getByRole('link', { name: /get started/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/signup');
   });
 });

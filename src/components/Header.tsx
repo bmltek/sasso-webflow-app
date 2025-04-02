@@ -1,99 +1,106 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Network, Boxes } from 'lucide-react';
-import type { HeaderProps } from '../types';
+import { Link } from 'react-router-dom';
 
-const navItems = [
-  { label: 'Features', href: '/features' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Testimonials', href: '/testimonials' },
-  { label: 'Contact', href: '/contact' },
-];
+interface HeaderProps {
+  isScrolled?: boolean;
+}
 
-export function Header({ isScrolled }: HeaderProps) {
+export const Header: React.FC<HeaderProps> = ({ isScrolled = false }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
+      role="banner"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white/90' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex justify-between items-center py-4 md:py-6">
-          <div className="flex items-center space-x-2">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="flex items-center text-emerald-600">
-                <Network className="h-8 w-8" />
-                <Boxes className="h-8 w-8 -ml-2" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-lime-500 bg-clip-text text-transparent">
-                microflow
-              </span>
-            </Link>
-          </div>
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="text-2xl font-bold">
+            microflow
+          </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`text-gray-600 hover:text-emerald-600 transition-colors font-medium ${
-                  location.pathname === item.href ? 'text-emerald-600' : ''
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <Link
-              to="/signin"
-              className="bg-gradient-to-r from-emerald-500 to-lime-400 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all"
-            >
-              Sign In
+          <nav className="hidden md:flex items-center space-x-8" aria-label="desktop">
+            <Link to="/features" className="hover:text-blue-600">
+              Features
+            </Link>
+            <Link to="/pricing" className="hover:text-blue-600">
+              Pricing
+            </Link>
+            <Link to="/contact" className="hover:text-blue-600">
+              Contact
             </Link>
           </nav>
 
+          {/* Auth Buttons */}
+          <div className="hidden md:flex items-center space-x-4" role="group" aria-label="desktop auth">
+            <button className="px-4 py-2 text-blue-600 hover:text-blue-700">
+              Sign In
+            </button>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Sign Up
+            </button>
+          </div>
+
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden"
+            className="md:hidden p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? (
-              <X className="h-6 w-6 text-gray-600" />
-            ) : (
-              <Menu className="h-6 w-6 text-gray-600" />
-            )}
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {isMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
           </button>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className={`block px-3 py-2 text-base font-medium text-gray-600 hover:text-emerald-600 transition-colors ${
-                    location.pathname === item.href ? 'text-emerald-600' : ''
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <Link
-                to="/signin"
-                className="block w-full mt-4 bg-gradient-to-r from-emerald-500 to-lime-400 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all text-center"
-              >
-                Sign In
-              </Link>
-            </div>
+        <nav
+          className={`md:hidden ${
+            isMenuOpen ? 'block' : 'hidden'
+          } mt-4 pb-4`}
+          aria-label="mobile"
+        >
+          <div className="flex flex-col space-y-4">
+            <Link to="/features" className="hover:text-blue-600">
+              Features
+            </Link>
+            <Link to="/pricing" className="hover:text-blue-600">
+              Pricing
+            </Link>
+            <Link to="/contact" className="hover:text-blue-600">
+              Contact
+            </Link>
+            <button className="px-4 py-2 text-blue-600 hover:text-blue-700">
+              Sign In
+            </button>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Sign Up
+            </button>
           </div>
-        )}
+        </nav>
       </div>
     </header>
   );
-}
+};

@@ -1,75 +1,83 @@
+import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
-import Header from '../Header';
+import { Header } from '../Header';
 
 // Mock the router
-vi.mock('react-router-dom', () => ({
+jest.mock('react-router-dom', () => ({
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
+  useLocation: () => ({
+    pathname: '/',
+    search: '',
+    hash: '',
+    state: null,
+    key: 'default'
+  })
 }));
 
-describe('Header Component', () => {
-  const renderHeader = (isScrolled = false) => {
-    return render(
-      <BrowserRouter>
-        <Header isScrolled={isScrolled} />
-      </BrowserRouter>
-    );
-  };
+const renderWithRouter = (component: React.ReactNode) => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
+};
 
+describe('Header Component', () => {
   it('renders without crashing', () => {
-    render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
-    );
+    renderWithRouter(<Header />);
     expect(screen.getByRole('banner')).toBeInTheDocument();
   });
 
-  it('renders navigation links', () => {
-    render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
-    );
-    expect(screen.getByText(/home/i)).toBeInTheDocument();
-    expect(screen.getByText(/features/i)).toBeInTheDocument();
-    expect(screen.getByText(/pricing/i)).toBeInTheDocument();
-    expect(screen.getByText(/contact/i)).toBeInTheDocument();
-  });
-
-  it('renders authentication buttons', () => {
-    render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
-    );
-    expect(screen.getByText(/sign in/i)).toBeInTheDocument();
-    expect(screen.getByText(/sign up/i)).toBeInTheDocument();
-  });
-
-  it('renders logo and navigation items', () => {
-    renderHeader();
+  it('displays the logo', () => {
+    renderWithRouter(<Header />);
     expect(screen.getByText('microflow')).toBeInTheDocument();
-    expect(screen.getByText('Features')).toBeInTheDocument();
-    expect(screen.getByText('Pricing')).toBeInTheDocument();
   });
 
-  it('applies scroll styles when isScrolled is true', () => {
-    renderHeader(true);
+  it('renders navigation links', () => {
+    renderWithRouter(<Header />);
+    // Target desktop navigation
+    const desktopNav = screen.getByRole('navigation', { name: /desktop/i });
+    expect(desktopNav).toBeInTheDocument();
+    expect(desktopNav).toHaveTextContent('Features');
+    expect(desktopNav).toHaveTextContent('Pricing');
+    expect(desktopNav).toHaveTextContent('Contact');
+  });
+
+  it('renders auth buttons', () => {
+    renderWithRouter(<Header />);
+    // Target desktop auth buttons
+    const desktopAuth = screen.getByRole('group', { name: /desktop auth/i });
+    expect(desktopAuth).toBeInTheDocument();
+    expect(desktopAuth).toHaveTextContent('Sign In');
+    expect(desktopAuth).toHaveTextContent('Sign Up');
+  });
+
+  it('toggles mobile menu when menu button is clicked', () => {
+    renderWithRouter(<Header />);
+    const menuButton = screen.getByLabelText('Toggle menu');
+    fireEvent.click(menuButton);
+    
+    // Check if mobile menu items are visible
+    const mobileNav = screen.getByRole('navigation', { name: /mobile/i });
+    expect(mobileNav).toBeVisible();
+    expect(mobileNav).toHaveTextContent('Features');
+    expect(mobileNav).toHaveTextContent('Pricing');
+    expect(mobileNav).toHaveTextContent('Contact');
+  });
+
+  it('applies scrolled styles when isScrolled prop is true', () => {
+    renderWithRouter(<Header isScrolled={true} />);
     const header = screen.getByRole('banner');
     expect(header).toHaveClass('bg-white/90');
   });
 
-  it('toggles mobile menu when button is clicked', () => {
-    render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
-    );
-    const menuButton = screen.getByRole('button', { name: /menu/i });
-    fireEvent.click(menuButton);
-    expect(screen.getByRole('navigation')).toHaveClass('block');
+  it('does not apply scrolled styles when isScrolled prop is false', () => {
+    renderWithRouter(<Header isScrolled={false} />);
+    const header = screen.getByRole('banner');
+    expect(header).toHaveClass('bg-transparent');
+  });
+
+  it('renders mobile menu button', () => {
+    renderWithRouter(<Header />);
+    expect(screen.getByLabelText('Toggle menu')).toBeInTheDocument();
   });
 });

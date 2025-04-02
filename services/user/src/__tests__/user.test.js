@@ -1,9 +1,22 @@
-import request from 'supertest';
-import express from 'express';
-import cors from 'cors';
-import { createClient } from '@supabase/supabase-js';
+const request = require('supertest');
+const express = require('express');
+const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
 
-jest.mock('@supabase/supabase-js');
+// Mock Supabase client
+const mockSupabase = {
+  auth: {
+    getUser: jest.fn()
+  },
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  single: jest.fn()
+};
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => mockSupabase)
+}));
 
 const app = express();
 app.use(cors());
@@ -11,7 +24,7 @@ app.use(express.json());
 
 describe('User Service', () => {
   beforeEach(() => {
-    createClient.mockClear();
+    jest.clearAllMocks();
   });
 
   it('returns user profile when authenticated', async () => {
@@ -22,32 +35,21 @@ describe('User Service', () => {
       created_at: '2024-03-31T15:00:00Z'
     };
 
-    createClient.mockImplementation(() => ({
-      auth: {
-        getUser: jest.fn().mockResolvedValue({ user: { id: '123' } })
-      },
-      from: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockUser, error: null })
-          })
-        })
-      })
-    }));
+    mockSupabase.auth.getUser.mockResolvedValue({ user: { id: '123' } });
+    mockSupabase.single.mockResolvedValue({ data: mockUser, error: null });
 
     const response = await request(app)
       .get('/profile')
       .expect(200);
 
     expect(response.body).toEqual(mockUser);
+    expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
+    expect(mockSupabase.select).toHaveBeenCalled();
+    expect(mockSupabase.eq).toHaveBeenCalledWith('id', '123');
   });
 
   it('returns 401 when not authenticated', async () => {
-    createClient.mockImplementation(() => ({
-      auth: {
-        getUser: jest.fn().mockResolvedValue({ user: null })
-      }
-    }));
+    mockSupabase.auth.getUser.mockResolvedValue({ user: null });
 
     await request(app)
       .get('/profile')

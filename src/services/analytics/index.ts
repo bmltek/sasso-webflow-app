@@ -1,10 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { format } from 'date-fns';
+import { env } from '../env';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
 
 export interface AnalyticsData {
   sessionDuration: string;

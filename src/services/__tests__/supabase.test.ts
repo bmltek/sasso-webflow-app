@@ -1,36 +1,22 @@
-import { createClient } from '@supabase/supabase-js';
-import { beforeEach, describe, expect, it, vi } from 'jest';
+import { supabaseMock } from '../__mocks__/supabase';
 import { auth, database } from '../supabase';
 
-// Mock the environment variables
-vi.mock('import.meta', () => ({
+// Mock environment variables
+jest.mock('../env', () => ({
   env: {
     VITE_SUPABASE_URL: 'https://test.supabase.co',
     VITE_SUPABASE_ANON_KEY: 'test-key'
   }
 }));
 
-// Mock Supabase client
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    auth: {
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-      getUser: vi.fn()
-    },
-    from: vi.fn(() => ({
-      select: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn()
-    }))
-  }))
+// Mock Supabase
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: () => supabaseMock
 }));
 
 describe('Supabase Service', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('Auth', () => {
@@ -39,41 +25,36 @@ describe('Supabase Service', () => {
 
     it('handles sign in', async () => {
       const mockAuthResponse = { user: { id: '1', email: testEmail } };
-      const mockSignIn = vi.fn().mockResolvedValue({ data: mockAuthResponse, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.auth.signInWithPassword = mockSignIn;
+      supabaseMock.auth.signInWithPassword.mockResolvedValue({ data: mockAuthResponse, error: null });
 
-      await expect(auth.signIn(testEmail, testPassword)).resolves.toEqual(mockAuthResponse);
-      expect(mockSignIn).toHaveBeenCalledWith({ email: testEmail, password: testPassword });
+      const result = await auth.signIn(testEmail, testPassword);
+      expect(result).toEqual(mockAuthResponse);
+      expect(supabaseMock.auth.signInWithPassword).toHaveBeenCalledWith({ email: testEmail, password: testPassword });
     });
 
     it('handles sign up', async () => {
       const mockAuthResponse = { user: { id: '1', email: testEmail } };
-      const mockSignUp = vi.fn().mockResolvedValue({ data: mockAuthResponse, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.auth.signUp = mockSignUp;
+      supabaseMock.auth.signUp.mockResolvedValue({ data: mockAuthResponse, error: null });
 
-      await expect(auth.signUp(testEmail, testPassword)).resolves.toEqual(mockAuthResponse);
-      expect(mockSignUp).toHaveBeenCalledWith({ email: testEmail, password: testPassword });
+      const result = await auth.signUp(testEmail, testPassword);
+      expect(result).toEqual(mockAuthResponse);
+      expect(supabaseMock.auth.signUp).toHaveBeenCalledWith({ email: testEmail, password: testPassword });
     });
 
     it('handles sign out', async () => {
-      const mockSignOut = vi.fn().mockResolvedValue({ error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.auth.signOut = mockSignOut;
+      supabaseMock.auth.signOut.mockResolvedValue({ error: null });
 
-      await expect(auth.signOut()).resolves.toBeUndefined();
-      expect(mockSignOut).toHaveBeenCalled();
+      await auth.signOut();
+      expect(supabaseMock.auth.signOut).toHaveBeenCalled();
     });
 
     it('handles get user', async () => {
       const mockUser = { id: '1', email: testEmail };
-      const mockGetUser = vi.fn().mockResolvedValue({ data: { user: mockUser }, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.auth.getUser = mockGetUser;
+      supabaseMock.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
 
-      await expect(auth.getUser()).resolves.toEqual(mockUser);
-      expect(mockGetUser).toHaveBeenCalled();
+      const result = await auth.getUser();
+      expect(result).toEqual(mockUser);
+      expect(supabaseMock.auth.getUser).toHaveBeenCalled();
     });
   });
 
@@ -82,60 +63,87 @@ describe('Supabase Service', () => {
     const testId = '1';
     const testItem = { name: 'Test Item' };
 
+    beforeEach(() => {
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn().mockReturnThis()
+      };
+      supabaseMock.from.mockReturnValue(mockQuery);
+    });
+
     it('gets all items', async () => {
       const mockItems = [{ id: 1, name: 'Test' }];
-      const mockSelect = vi.fn().mockResolvedValue({ data: mockItems, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.from(testTable).select = mockSelect;
+      const mockQuery = supabaseMock.from(testTable);
+      mockQuery.select.mockResolvedValue({ data: mockItems, error: null });
 
-      await expect(database.getItems(testTable)).resolves.toEqual(mockItems);
-      expect(mockSelect).toHaveBeenCalled();
+      const result = await database.getItems(testTable);
+      expect(result).toEqual(mockItems);
+      expect(supabaseMock.from).toHaveBeenCalledWith(testTable);
+      expect(mockQuery.select).toHaveBeenCalled();
     });
 
     it('gets item by id', async () => {
       const mockItem = { id: 1, name: 'Test' };
-      const mockSelect = vi.fn().mockResolvedValue({ data: mockItem, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.from(testTable).select = mockSelect;
+      const mockQuery = supabaseMock.from(testTable);
+      mockQuery.select.mockReturnThis();
+      mockQuery.eq.mockReturnThis();
+      mockQuery.single.mockResolvedValue({ data: mockItem, error: null });
 
-      await expect(database.getItemById(testTable, testId)).resolves.toEqual(mockItem);
-      expect(mockSelect).toHaveBeenCalled();
+      const result = await database.getItemById(testTable, testId);
+      expect(result).toEqual(mockItem);
+      expect(supabaseMock.from).toHaveBeenCalledWith(testTable);
+      expect(mockQuery.select).toHaveBeenCalled();
+      expect(mockQuery.eq).toHaveBeenCalledWith('id', testId);
     });
 
     it('creates item', async () => {
       const mockCreatedItem = { id: 1, ...testItem };
-      const mockInsert = vi.fn().mockResolvedValue({ data: mockCreatedItem, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.from(testTable).insert = mockInsert;
+      const mockQuery = supabaseMock.from(testTable);
+      mockQuery.insert.mockReturnThis();
+      mockQuery.select.mockReturnThis();
+      mockQuery.single.mockResolvedValue({ data: mockCreatedItem, error: null });
 
-      await expect(database.createItem(testTable, testItem)).resolves.toEqual(mockCreatedItem);
-      expect(mockInsert).toHaveBeenCalledWith(testItem);
+      const result = await database.createItem(testTable, testItem);
+      expect(result).toEqual(mockCreatedItem);
+      expect(supabaseMock.from).toHaveBeenCalledWith(testTable);
+      expect(mockQuery.insert).toHaveBeenCalledWith(testItem);
     });
 
     it('updates item', async () => {
       const mockUpdatedItem = { id: 1, name: 'Updated' };
-      const mockUpdate = vi.fn().mockResolvedValue({ data: mockUpdatedItem, error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.from(testTable).update = mockUpdate;
+      const mockQuery = supabaseMock.from(testTable);
+      mockQuery.update.mockReturnThis();
+      mockQuery.eq.mockReturnThis();
+      mockQuery.select.mockReturnThis();
+      mockQuery.single.mockResolvedValue({ data: mockUpdatedItem, error: null });
 
-      await expect(database.updateItem(testTable, testId, testItem)).resolves.toEqual(mockUpdatedItem);
-      expect(mockUpdate).toHaveBeenCalledWith(testItem);
+      const result = await database.updateItem(testTable, testId, testItem);
+      expect(result).toEqual(mockUpdatedItem);
+      expect(supabaseMock.from).toHaveBeenCalledWith(testTable);
+      expect(mockQuery.update).toHaveBeenCalledWith(testItem);
+      expect(mockQuery.eq).toHaveBeenCalledWith('id', testId);
     });
 
     it('deletes item', async () => {
-      const mockDelete = vi.fn().mockResolvedValue({ error: null });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.from(testTable).delete = mockDelete;
+      const mockQuery = supabaseMock.from(testTable);
+      mockQuery.delete.mockReturnThis();
+      mockQuery.eq.mockResolvedValue({ error: null });
 
-      await expect(database.deleteItem(testTable, testId)).resolves.toBeUndefined();
-      expect(mockDelete).toHaveBeenCalled();
+      await database.deleteItem(testTable, testId);
+      expect(supabaseMock.from).toHaveBeenCalledWith(testTable);
+      expect(mockQuery.delete).toHaveBeenCalled();
+      expect(mockQuery.eq).toHaveBeenCalledWith('id', testId);
     });
 
     it('handles database errors', async () => {
       const mockError = new Error('Database error');
-      const mockSelect = vi.fn().mockResolvedValue({ data: null, error: mockError });
-      const supabase = createClient('test-url', 'test-key');
-      supabase.from(testTable).select = mockSelect;
+      const mockQuery = supabaseMock.from(testTable);
+      mockQuery.select.mockResolvedValue({ data: null, error: mockError });
 
       await expect(database.getItems(testTable)).rejects.toThrow('Database error');
     });
