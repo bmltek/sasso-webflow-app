@@ -46,14 +46,14 @@ stages:
       inputs:
         command: 'custom'
         workingDir: '.'
-        customCommand: 'install -D ts-node @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy'
+        customCommand: 'install -D ts-node @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy nyc'
 
     - task: Npm@1
       displayName: 'Run tests with coverage'
       inputs:
         command: 'custom'
         workingDir: '.'
-        customCommand: 'run test:coverage'
+        customCommand: 'nyc --reporter=cobertura --reporter=text npm test'
 
     - task: SonarCloudAnalyze@1
       displayName: 'Run SonarCloud Analysis'
