@@ -38,24 +38,26 @@ export const analyticsService = {
 
   async trackEvent(eventName: string, metadata: Record<string, any>) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      
+      if (!data.user) {
         console.warn('No authenticated user found, skipping event tracking');
         return;
       }
 
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('events')
         .insert([
           {
             event_name: eventName,
             metadata,
             timestamp: new Date().toISOString(),
-            user_id: user.id
+            user_id: data.user.id
           }
         ]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
     } catch (error) {
       console.error('Failed to track event:', error);
     }

@@ -32,6 +32,13 @@ describe('Supabase Service', () => {
       expect(supabaseMock.auth.signInWithPassword).toHaveBeenCalledWith({ email: testEmail, password: testPassword });
     });
 
+    it('handles sign in error', async () => {
+      const mockError = new Error('Invalid credentials');
+      supabaseMock.auth.signInWithPassword.mockResolvedValue({ data: null, error: mockError });
+
+      await expect(auth.signIn(testEmail, testPassword)).rejects.toThrow('Invalid credentials');
+    });
+
     it('handles sign up', async () => {
       const mockAuthResponse = { user: { id: '1', email: testEmail } };
       supabaseMock.auth.signUp.mockResolvedValue({ data: mockAuthResponse, error: null });
@@ -41,11 +48,25 @@ describe('Supabase Service', () => {
       expect(supabaseMock.auth.signUp).toHaveBeenCalledWith({ email: testEmail, password: testPassword });
     });
 
+    it('handles sign up error', async () => {
+      const mockError = new Error('Email already exists');
+      supabaseMock.auth.signUp.mockResolvedValue({ data: null, error: mockError });
+
+      await expect(auth.signUp(testEmail, testPassword)).rejects.toThrow('Email already exists');
+    });
+
     it('handles sign out', async () => {
       supabaseMock.auth.signOut.mockResolvedValue({ error: null });
 
       await auth.signOut();
       expect(supabaseMock.auth.signOut).toHaveBeenCalled();
+    });
+
+    it('handles sign out error', async () => {
+      const mockError = new Error('Network error');
+      supabaseMock.auth.signOut.mockResolvedValue({ error: mockError });
+
+      await expect(auth.signOut()).rejects.toThrow('Network error');
     });
 
     it('handles get user', async () => {
@@ -55,6 +76,13 @@ describe('Supabase Service', () => {
       const result = await auth.getUser();
       expect(result).toEqual(mockUser);
       expect(supabaseMock.auth.getUser).toHaveBeenCalled();
+    });
+
+    it('handles get user error', async () => {
+      const mockError = new Error('Not authenticated');
+      supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null }, error: mockError });
+
+      await expect(auth.getUser()).rejects.toThrow('Not authenticated');
     });
   });
 
@@ -146,6 +174,17 @@ describe('Supabase Service', () => {
       mockQuery.select.mockResolvedValue({ data: null, error: mockError });
 
       await expect(database.getItems(testTable)).rejects.toThrow('Database error');
+    });
+
+    it('handles missing environment variables', () => {
+      jest.resetModules();
+      jest.mock('../env', () => ({
+        env: {}
+      }));
+
+      expect(() => {
+        require('../supabase');
+      }).toThrow('Missing Supabase environment variables');
     });
   });
 }); 

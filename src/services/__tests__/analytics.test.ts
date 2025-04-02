@@ -62,6 +62,24 @@ describe('Analytics Service', () => {
         conversionRate: 0
       });
     });
+
+    it('returns default analytics when data is null', async () => {
+      supabaseMock.from.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
+      });
+
+      const result = await analyticsService.getRealtimeMetrics();
+
+      expect(result).toEqual({
+        sessionDuration: '0m 0s',
+        percentageIncrease: 0,
+        chartData: [0, 0, 0, 0, 0, 0, 0],
+        conversionRate: 0
+      });
+    });
   });
 
   describe('trackEvent', () => {
@@ -111,6 +129,17 @@ describe('Analytics Service', () => {
       await analyticsService.trackEvent('test_event', {});
 
       expect(consoleError).toHaveBeenCalledWith('Failed to track event:', expect.any(Error));
+      consoleError.mockRestore();
+    });
+
+    it('handles auth errors gracefully', async () => {
+      supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null }, error: new Error('Auth error') });
+
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      await analyticsService.trackEvent('test_event', {});
+
+      expect(consoleError).toHaveBeenCalledWith('Failed to track event:', expect.any(Error));
+      expect(supabaseMock.from).not.toHaveBeenCalled();
       consoleError.mockRestore();
     });
   });
