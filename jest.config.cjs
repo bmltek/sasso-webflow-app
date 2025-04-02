@@ -17,7 +17,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^vite$': '<rootDir>/src/test/mocks/vite.js'
   },
-  testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
+  testMatch: ['<rootDir>/src/**/__tests__/**/*.test.[jt]s?(x)'],
   transformIgnorePatterns: [
     'node_modules/(?!(@supabase|msw)/)'
   ],
