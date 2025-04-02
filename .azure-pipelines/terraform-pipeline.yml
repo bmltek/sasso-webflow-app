@@ -61,7 +61,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'validate'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
 
 - stage: Plan
   displayName: 'Plan Infrastructure Changes'
@@ -92,7 +92,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'plan'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
         commandOptions: '-var="create_resource_group=${{ lower(parameters.createResourceGroup) }}" -var="environment=${{ parameters.environment }}" -var="location=${{ parameters.location }}" -var="node_count=${{ parameters.aksNodeCount }}" -out=$(Build.ArtifactStagingDirectory)/tfplan'
         environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
 
@@ -136,6 +136,6 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
               commandOptions: '$(Pipeline.Workspace)/tfplan/tfplan'
               environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
