@@ -21,6 +21,7 @@ stages:
         cliProjectKey: '${{ parameters.sonarProjectKey }}'
         cliProjectName: '${{ parameters.sonarProjectKey }}'
         cliSources: '.'
+        organization: '${{ parameters.sonarOrganization }}'
         extraProperties: |
           sonar.projectKey=${{ parameters.sonarProjectKey }}
           sonar.organization=${{ parameters.sonarOrganization }}
