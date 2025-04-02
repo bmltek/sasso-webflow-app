@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: sasso
+  namespace: sasso-webflow
   labels:
     app: frontend
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ${ACR_NAME}.azurecr.io/frontend:latest
+        image: ${acrName}/frontend:latest
         ports:
         - containerPort: 3000
         envFrom:

@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-service
-  namespace: sasso
+  name: frontend
+  namespace: sasso-webflow
 spec:
   type: LoadBalancer
   ports:
@@ -10,6 +10,19 @@ spec:
     targetPort: 3000
   selector:
     app: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: sasso-webflow
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: backend
 ---
 apiVersion: v1
 kind: Service

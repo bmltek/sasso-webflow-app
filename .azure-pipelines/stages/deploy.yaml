@@ -25,20 +25,15 @@ stages:
           echo "Verifying connection to cluster..."
           kubectl cluster-info
 
-    - task: replacetokens@5
-      displayName: 'Replace ACR name in manifests'
+    - task: Bash@3
+      displayName: 'Update Kubernetes Manifests'
       inputs:
-        targetFiles: 'kubernetes/*.yaml'
-        encoding: 'auto'
-        tokenPattern: 'default'
-        writeBOM: true
-        actionOnMissing: 'warn'
-        keepToken: false
-        actionOnNoFiles: 'continue'
-        enableTransforms: false
-        enableRecursion: false
-        useLegacyPattern: false
-        enableTelemetry: true
+        targetType: 'inline'
+        script: |
+          # Replace ACR placeholder in manifest files
+          echo "Updating image references in manifest files..."
+          find kubernetes/ -type f -name "*.yaml" -exec sed -i "s##{acrName}#${{ parameters.acrName }}#g" {} \;
+          find kubernetes/ -type f -name "*.yaml" -exec sed -i "s#\${acrName}#${{ parameters.acrName }}#g" {} \;
 
     - task: KubernetesManifest@1
       displayName: 'Deploy ConfigMap'
