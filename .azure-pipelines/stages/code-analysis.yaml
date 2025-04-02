@@ -40,11 +40,11 @@ stages:
         workingDir: '.'
 
     - task: Npm@1
-      displayName: 'Install ts-node'
+      displayName: 'Install testing dependencies'
       inputs:
         command: 'custom'
         workingDir: '.'
-        customCommand: 'install -D ts-node'
+        customCommand: 'install -D ts-node @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy'
 
     - task: Npm@1
       displayName: 'Run tests with coverage'

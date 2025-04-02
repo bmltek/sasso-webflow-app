@@ -7,6 +7,10 @@ const config: Config = {
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@services/(.*)$': '<rootDir>/src/services/$1',
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    '^@pages/(.*)$': '<rootDir>/src/pages/$1',
+    '^@store/(.*)$': '<rootDir>/src/store/$1'
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
@@ -19,6 +23,8 @@ const config: Config = {
     '!src/main.tsx',
     '!src/vite-env.d.ts',
     '!src/env.d.ts',
+    '!src/test/**/*',
+    '!src/services/**/package.json'
   ],
   coverageThreshold: {
     global: {
@@ -40,6 +46,12 @@ const config: Config = {
       },
     },
   },
+  moduleDirectories: ['node_modules', 'src'],
+  roots: ['<rootDir>/src'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@supabase/supabase-js)/)'
+  ]
 };
 
 export default config; 
