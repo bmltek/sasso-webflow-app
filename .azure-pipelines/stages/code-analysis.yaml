@@ -12,10 +12,10 @@ stages:
     - checkout: self
       fetchDepth: 0
       
-    - task: SonarCloudPrepare@1
-      displayName: 'Prepare SonarCloud Analysis'
+    - task: SonarQubePrepare@6
+      displayName: 'Prepare SonarQube Analysis'
       inputs:
-        SonarCloud: '$(SONAR_SERVICE_CONNECTION)'
+        SonarQube: '$(SONAR_SERVICE_CONNECTION)'
         scannerMode: 'CLI'
         configMode: 'manual'
         cliProjectKey: '${{ parameters.sonarProjectKey }}'
@@ -46,10 +46,10 @@ stages:
         workingDir: '.'
         customCommand: 'run test:coverage'
 
-    - task: SonarCloudAnalyze@1
-      displayName: 'Run SonarCloud Analysis'
+    - task: SonarQubeAnalyze@6
+      displayName: 'Run SonarQube Analysis'
 
-    - task: SonarCloudPublish@1
+    - task: SonarQubePublish@6
       displayName: 'Publish Quality Gate Result'
       inputs:
         pollingTimeoutSec: '300'
