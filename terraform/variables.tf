@@ -25,19 +25,19 @@ variable "location" {
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string
-  default     = "1.30.3"
+  default     = "1.30.10"
 }
 
 variable "node_count" {
   description = "Initial number of nodes"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "vm_size" {
   description = "VM size for AKS nodes"
   type        = string
-  default     = "Standard_DS2_v2"
+  default     = "Standard_B2s"
 }
 
 variable "min_node_count" {
@@ -49,7 +49,7 @@ variable "min_node_count" {
 variable "max_node_count" {
   description = "Maximum number of nodes for autoscaling"
   type        = number
-  default     = 5
+  default     = 2
 }
 
 variable "tags" {
