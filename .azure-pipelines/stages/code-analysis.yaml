@@ -49,7 +49,7 @@ stages:
     - task: SonarQubeAnalyze@7
       displayName: 'Run SonarQube Analysis'
 
-    - task: SonarQubePublish@5
+    - task: SonarQubePublish@7
       displayName: 'Publish Quality Gate Result'
       inputs:
         pollingTimeoutSec: '300'
