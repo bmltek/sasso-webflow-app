@@ -20,36 +20,10 @@ vi.mock('@supabase/supabase-js', () => ({
       getUser: vi.fn()
     },
     from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(),
-        single: vi.fn(),
-        data: [{ id: 1, name: 'Test' }],
-        error: null
-      })),
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { id: 1 },
-            error: null
-          }))
-        }))
-      })),
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(() => ({
-              data: { id: 1, name: 'Updated' },
-              error: null
-            }))
-          }))
-        }))
-      })),
-      delete: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          data: null,
-          error: null
-        }))
-      }))
+      select: vi.fn(),
+      insert: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn()
     }))
   }))
 }));

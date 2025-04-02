@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 // Mock useNavigate
@@ -8,17 +9,32 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
 }));
 
+// Mock the router
+vi.mock('react-router-dom', () => ({
+  BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Routes: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Route: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 describe('App Component', () => {
   it('renders without crashing', () => {
-    render(<App />);
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    );
     expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 
   it('renders main navigation elements', () => {
-    render(<App />);
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Analytics')).toBeInTheDocument();
-    expect(screen.getByText('Metrics')).toBeInTheDocument();
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    );
+    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
+    expect(screen.getByText(/analytics/i)).toBeInTheDocument();
+    expect(screen.getByText(/metrics/i)).toBeInTheDocument();
   });
 
   it('handles search functionality', async () => {
