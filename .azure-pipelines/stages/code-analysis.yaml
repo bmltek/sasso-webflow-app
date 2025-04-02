@@ -53,7 +53,7 @@ stages:
       inputs:
         command: 'custom'
         workingDir: '.'
-        customCommand: 'npm test -- --coverage --coverageReporters=text --coverageReporters=lcov'
+        customCommand: 'test -- --coverage --coverageReporters=text --coverageReporters=lcov'
 
     - task: SonarCloudAnalyze@1
       displayName: 'Run SonarCloud Analysis'
