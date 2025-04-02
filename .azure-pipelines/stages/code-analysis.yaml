@@ -15,7 +15,7 @@ stages:
     - task: SonarQubePrepare@5
       displayName: 'Prepare SonarCloud Analysis'
       inputs:
-        SonarQube: 'SonarCloud'
+        SonarQube: 'Sonaqube-sasso-webflow-app'
         scannerMode: 'CLI'
         configMode: 'manual'
         cliProjectKey: '${{ parameters.sonarProjectKey }}'

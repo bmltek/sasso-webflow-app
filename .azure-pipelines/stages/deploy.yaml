@@ -14,7 +14,7 @@ stages:
     - task: AzureCLI@2
       displayName: 'Azure CLI Login and Get AKS Credentials'
       inputs:
-        azureSubscription: 'Azure subscription'
+        azureSubscription: 'AZURE_SUBSCRIPTION'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
