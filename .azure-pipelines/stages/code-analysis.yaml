@@ -80,24 +80,20 @@ stages:
         tags: |
           latest
           $(Build.BuildId)
-        arguments: '--no-cache'
+        arguments: '--no-cache --security-opt=no-new-privileges:true --security-opt=no-new-privileges:true'
 
-    - task: Trivy@1
-      displayName: 'Scan frontend Docker image'
+    - task: Docker@2
+      displayName: 'Scan Docker image for vulnerabilities'
       inputs:
+        command: 'scan'
         image: 'frontend:latest'
-        severity: 'CRITICAL,HIGH'
-        format: 'table'
-        outputFile: 'trivy-frontend-results.txt'
-        ignoreUnfixed: true
-        vulnType: 'os,library'
-        scanners: 'vuln,config,secret'
-        skipFiles: '**/node_modules/**'
-        skipDirs: '**/node_modules/**'
+        severity: 'HIGH,CRITICAL'
+        failOnSeverity: 'HIGH'
+        outputFile: 'docker-scan-results.json'
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Trivy scan results'
+      displayName: 'Publish Docker scan results'
       inputs:
-        targetPath: 'trivy-frontend-results.txt'
-        artifact: 'trivy-results'
+        targetPath: 'docker-scan-results.json'
+        artifact: 'docker-scan-results'
         publishLocation: 'pipeline' 
