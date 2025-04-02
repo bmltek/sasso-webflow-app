@@ -71,8 +71,16 @@ stages:
         failIfCoverageEmpty: true
         codecoverageTool: 'Cobertura'
 
+- stage: DockerBuild
+  displayName: 'Build and Scan Docker Images'
+  jobs:
+  - job: BuildAndScan
+    steps:
+    - checkout: self
+      fetchDepth: 0
+
     - task: Docker@2
-      displayName: 'Build and scan frontend Docker image'
+      displayName: 'Build frontend Docker image'
       inputs:
         command: 'build'
         Dockerfile: 'frontend/Dockerfile'
@@ -80,10 +88,10 @@ stages:
         tags: |
           latest
           $(Build.BuildId)
-        arguments: '--no-cache --security-opt=no-new-privileges:true --security-opt=no-new-privileges:true'
+        arguments: '--no-cache'
 
     - task: Docker@2
-      displayName: 'Scan Docker image for vulnerabilities'
+      displayName: 'Scan frontend Docker image'
       inputs:
         command: 'scan'
         image: 'frontend:latest'
