@@ -11,10 +11,13 @@ terraform {
     storage_account_name = "tfstat56eterraform45"
     container_name       = "tfstate"
     key                 = "terraform.tfstate"
-    use_azuread_auth    = false
   }
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }

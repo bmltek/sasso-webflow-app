@@ -46,7 +46,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     max_count          = var.max_node_count
     os_disk_size_gb    = 50
     type               = "VirtualMachineScaleSets"
-    zones              = ["1", "2", "3"]
+    zones              = ["2"]
   }
 
   identity {
