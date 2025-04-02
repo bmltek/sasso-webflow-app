@@ -40,6 +40,13 @@ stages:
         workingDir: '.'
 
     - task: Npm@1
+      displayName: 'Install ts-node'
+      inputs:
+        command: 'custom'
+        workingDir: '.'
+        customCommand: 'install -D ts-node'
+
+    - task: Npm@1
       displayName: 'Run tests with coverage'
       inputs:
         command: 'custom'
