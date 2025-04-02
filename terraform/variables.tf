@@ -52,6 +52,12 @@ variable "max_node_count" {
   default     = 2
 }
 
+variable "assign_roles" {
+  description = "Whether to create role assignments (requires Owner or User Access Administrator role)"
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
