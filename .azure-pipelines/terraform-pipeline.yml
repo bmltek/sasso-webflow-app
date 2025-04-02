@@ -25,7 +25,7 @@ parameters:
 trigger: none
 
 variables:
-  - group: terraform-config  # Must define AZURE_SUBSCRIPTION
+  - group: terraform-config
   - name: TF_WORKSPACE
     value: ${{ parameters.environment }}
 
@@ -33,11 +33,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-- stage: Validate
-  displayName: 'Validate Terraform'
+- stage: Deploy
+  displayName: 'Deploy Infrastructure'
   jobs:
-  - job: Validate
-    displayName: 'Terraform Validation'
+  - job: Deploy
+    displayName: 'Terraform Deployment'
     steps:
     - task: TerraformInstaller@0
       displayName: 'Install Terraform'
@@ -49,7 +49,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
         backendServiceArm: '$(AZURE_SUBSCRIPTION)'
         backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
         backendAzureRmStorageAccountName: 'tfstat56eterraform45'
@@ -61,81 +61,22 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'validate'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
-
-- stage: Plan
-  displayName: 'Plan Infrastructure Changes'
-  dependsOn: Validate
-  jobs:
-  - job: Plan
-    displayName: 'Terraform Plan'
-    steps:
-    - task: TerraformInstaller@0
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: '1.5.7'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Init'
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
-        backendServiceArm: '$(AZURE_SUBSCRIPTION)'
-        backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
-        backendAzureRmStorageAccountName: 'tfstat56eterraform45'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Plan'
       inputs:
         provider: 'azurerm'
         command: 'plan'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
         commandOptions: '-var="create_resource_group=${{ lower(parameters.createResourceGroup) }}" -var="environment=${{ parameters.environment }}" -var="location=${{ parameters.location }}" -var="node_count=${{ parameters.aksNodeCount }}" -out=$(Build.ArtifactStagingDirectory)/tfplan'
         environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
 
-    - publish: $(Build.ArtifactStagingDirectory)/tfplan
-      artifact: tfplan
-
-- stage: Apply
-  displayName: 'Apply Infrastructure Changes'
-  dependsOn: Plan
-  condition: succeeded()
-  jobs:
-  - deployment: Apply
-    displayName: 'Terraform Apply'
-    environment: ${{ parameters.environment }}
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: TerraformInstaller@0
-            displayName: 'Install Terraform'
-            inputs:
-              terraformVersion: '1.5.7'
-
-          - download: current
-            artifact: tfplan
-
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
-              backendServiceArm: '$(AZURE_SUBSCRIPTION)'
-              backendAzureRmResourceGroupName: 'sasso-tfstate-rg'
-              backendAzureRmStorageAccountName: 'tfstat56eterraform45'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
-
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Apply'
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/sasso-webflow-app/terraform'
-              commandOptions: '$(Pipeline.Workspace)/tfplan/tfplan'
-              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Apply'
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+        commandOptions: '$(Build.ArtifactStagingDirectory)/tfplan'
+        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
