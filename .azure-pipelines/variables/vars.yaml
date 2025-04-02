@@ -15,4 +15,6 @@ variables:
   value: 'AZURE_SUBSCRIPTION'
 - name: SONAR_SERVICE_CONNECTION
   value: 'Sonaqube-sasso-webflow-app'
+- name: ACR_SERVICE_CONNECTION
+  value: 'ACR.sasso-webflow'
 - group: AKS-Variables  # Contains ACR_NAME, RESOURCE_GROUP, AKS_CLUSTER, SONAR_TOKEN 
