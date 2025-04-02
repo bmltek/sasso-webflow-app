@@ -15,7 +15,7 @@ stages:
     - task: SonarQubePrepare@5
       displayName: 'Prepare SonarCloud Analysis'
       inputs:
-        SonarQube: '$(SONAR_SERVICE_CONNECTION)'
+        SonarQube: 'sonarcloud-connection'
         scannerMode: 'CLI'
         configMode: 'manual'
         cliProjectKey: '${{ parameters.sonarProjectKey }}'
