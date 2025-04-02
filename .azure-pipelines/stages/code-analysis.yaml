@@ -12,10 +12,10 @@ stages:
     - checkout: self
       fetchDepth: 0
       
-    - task: SonarQubePrepare@5
+    - task: SonarQubePrepare@6
       displayName: 'Prepare SonarCloud Analysis'
       inputs:
-        SonarQube: 'Sonaqube-sasso-webflow-app'
+        SonarQube: '$(SONAR_SERVICE_CONNECTION)'
         scannerMode: 'CLI'
         configMode: 'manual'
         cliProjectKey: '${{ parameters.sonarProjectKey }}'
@@ -46,17 +46,18 @@ stages:
         workingDir: '.'
         customCommand: 'run test:coverage'
 
-    - task: SonarQubeAnalyze@5
+    - task: SonarQubeAnalyze@6
       displayName: 'Run SonarCloud Analysis'
 
-    - task: SonarQubePublish@5
+    - task: SonarQubePublish@6
       displayName: 'Publish Quality Gate Result'
       inputs:
         pollingTimeoutSec: '300'
 
-    - task: PublishCodeCoverageResults@1
+    - task: PublishCodeCoverageResults@2
       displayName: 'Publish Code Coverage'
       inputs:
-        codeCoverageTool: 'Cobertura'
         summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
-        reportDirectory: '$(System.DefaultWorkingDirectory)/coverage' 
+        pathToSources: '$(System.DefaultWorkingDirectory)/src'
+        failIfCoverageEmpty: true
+        codecoverageTool: 'Cobertura' 
