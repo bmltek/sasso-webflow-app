@@ -31,11 +31,5 @@ module.exports = {
   testEnvironmentOptions: {
     url: 'http://localhost',
     customExportConditions: ['node', 'node-addons']
-  },
-  globals: {
-    'ts-jest': {
-      isolatedModules: true,
-      useESM: true
-    }
   }
 }; 
