@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: sasso
+data:
+  NODE_ENV: "production"
+  METRICS_SERVICE_URL: "http://metrics-service:4003"
+  USER_SERVICE_URL: "http://user-service:4002"
+  FRONTEND_URL: "http://frontend-service"
+  LOG_LEVEL: "info"
+  ENABLE_MONITORING: "true"

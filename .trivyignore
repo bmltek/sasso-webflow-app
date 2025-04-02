@@ -1,0 +1,8 @@
+# Ignore specific vulnerabilities if needed
+# Format: CVE-YYYY-XXXXX
+
+# Example:
+# CVE-2021-23337    # Prototype Pollution in json-schema
+# CVE-2020-28168    # Prototype Pollution in node-forge
+
+# Add specific ignores below: 

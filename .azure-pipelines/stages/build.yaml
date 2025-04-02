@@ -1,0 +1,50 @@
+parameters:
+  acrName: ''
+
+stages:
+- stage: Build
+  displayName: 'Build and Push Images'
+  dependsOn: ['CodeAnalysis', 'SecurityScan']
+  jobs:
+  - job: BuildImages
+    steps:
+    - task: Docker@2
+      displayName: 'Build and push frontend'
+      inputs:
+        containerRegistry: 'Azure subscription'
+        repository: '${{ parameters.acrName }}/frontend'
+        command: 'buildAndPush'
+        Dockerfile: 'frontend/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+    - task: Docker@2
+      displayName: 'Build and push metrics service'
+      inputs:
+        containerRegistry: 'Azure subscription'
+        repository: '${{ parameters.acrName }}/metrics-service'
+        command: 'buildAndPush'
+        Dockerfile: 'metrics-service/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+    - task: Docker@2
+      displayName: 'Build and push user service'
+      inputs:
+        containerRegistry: 'Azure subscription'
+        repository: '${{ parameters.acrName }}/user-service'
+        command: 'buildAndPush'
+        Dockerfile: 'user-service/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+    - script: |
+        for image in frontend metrics-service user-service; do
+          echo "Scanning ${image} container image"
+          trivy image --severity HIGH,CRITICAL --exit-code 1 ${{ parameters.acrName }}/${image}:$(Build.BuildId)
+        done
+      displayName: 'Scan Container Images'
+      continueOnError: true 

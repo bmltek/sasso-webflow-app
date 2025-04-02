@@ -1,0 +1,113 @@
+parameters:
+  resourceGroup: ''
+  aksCluster: ''
+  acrName: ''
+
+stages:
+- stage: Deploy
+  displayName: 'Deploy to AKS'
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Azure CLI Login and Get AKS Credentials'
+      inputs:
+        azureSubscription: 'Azure subscription'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Login to Azure and get AKS credentials
+          az aks get-credentials --resource-group ${{ parameters.resourceGroup }} --name ${{ parameters.aksCluster }} --overwrite-existing
+          
+          # Verify connection
+          echo "Verifying connection to cluster..."
+          kubectl cluster-info
+
+    - task: replacetokens@5
+      displayName: 'Replace ACR name in manifests'
+      inputs:
+        targetFiles: 'kubernetes/*.yaml'
+        encoding: 'auto'
+        tokenPattern: 'default'
+        writeBOM: true
+        actionOnMissing: 'warn'
+        keepToken: false
+        actionOnNoFiles: 'continue'
+        enableTransforms: false
+        enableRecursion: false
+        useLegacyPattern: false
+        enableTelemetry: true
+
+    - task: KubernetesManifest@1
+      displayName: 'Deploy ConfigMap'
+      inputs:
+        action: 'deploy'
+        namespace: 'sasso-webflow'
+        manifests: 'kubernetes/config.yaml'
+
+    - task: KubernetesManifest@1
+      displayName: 'Deploy Services'
+      inputs:
+        action: 'deploy'
+        namespace: 'sasso-webflow'
+        manifests: 'kubernetes/services.yaml'
+
+    - task: KubernetesManifest@1
+      displayName: 'Deploy Applications'
+      inputs:
+        action: 'deploy'
+        namespace: 'sasso-webflow'
+        manifests: |
+          kubernetes/metrics-service.yaml
+          kubernetes/user-deployment.yaml
+          kubernetes/frontend-deployment.yaml
+
+    - task: KubernetesManifest@1
+      displayName: 'Deploy HPA'
+      inputs:
+        action: 'deploy'
+        namespace: 'sasso-webflow'
+        manifests: 'kubernetes/hpa.yaml'
+
+    - task: Bash@3
+      displayName: 'Verify Deployment'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Wait for deployments
+          for deployment in metrics-service user-service frontend; do
+            echo "Waiting for deployment $deployment..."
+            kubectl wait --for=condition=available deployment/$deployment --timeout=300s -n sasso-webflow
+            if [ $? -ne 0 ]; then
+              echo "Error: Deployment $deployment failed"
+              kubectl describe deployment/$deployment -n sasso-webflow
+              kubectl get events --field-selector involvedObject.name=$deployment -n sasso-webflow
+              exit 1
+            fi
+          done
+
+          # Print status
+          echo -e "\nPod status:"
+          kubectl get pods -n sasso-webflow
+          
+          echo -e "\nService status:"
+          kubectl get services -n sasso-webflow
+          
+          # Get service URLs
+          echo -e "\nService endpoints:"
+          for service in frontend-service metrics-service user-service; do
+            echo -n "$service: "
+            ip=$(kubectl get service $service -n sasso-webflow -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            case $service in
+              "frontend-service")
+                echo "http://$ip:80"
+                ;;
+              "metrics-service")
+                echo "http://$ip:4003"
+                ;;
+              "user-service")
+                echo "http://$ip:4002"
+                ;;
+            esac
+          done 

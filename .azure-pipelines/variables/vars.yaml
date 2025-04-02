@@ -1,0 +1,14 @@
+variables:
+- name: SONAR_PROJECT_KEY
+  value: 'princemike05_Sasso-Webflow'
+- name: SONAR_PROJECT_NAME
+  value: 'Sasso-Webflow'
+- name: SONAR_ORGANIZATION
+  value: 'princemike05'
+- name: DOCKER_BUILDKIT
+  value: 1
+- name: NAMESPACE
+  value: 'sasso-webflow'
+- name: ENVIRONMENT
+  value: 'development'
+- group: AKS-Variables  # Contains ACR_NAME, RESOURCE_GROUP, AKS_CLUSTER, SONAR_TOKEN 
