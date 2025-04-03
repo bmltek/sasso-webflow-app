@@ -8,6 +8,13 @@ stages:
   jobs:
   - job: TrivyScan
     steps:
+    - task: Docker@2
+      inputs:
+        command: 'login'
+        containerRegistry: 'acr-connection'
+        repository: '$(ACR_NAME).azurecr.io'
+      displayName: 'Login to ACR'
+
     - script: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3
       displayName: 'Install Trivy'
@@ -27,4 +34,13 @@ stages:
         # Scan for secrets
         trivy fs --security-checks secret .
       displayName: 'Scan for Secrets'
-      continueOnError: true 
+      continueOnError: true
+
+    - script: |
+        # Scan Docker images
+        for service in sasso-user-service sasso-analytics-service sasso-metrics-service; do
+          echo "Scanning $service image"
+          trivy image $(ACR_NAME).azurecr.io/$service:$(Build.BuildId) --severity HIGH,CRITICAL --exit-code 1
+        done
+      displayName: 'Scan Docker Images'
+      condition: succeededOrFailed() 

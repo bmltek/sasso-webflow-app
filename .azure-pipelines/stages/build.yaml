@@ -40,12 +40,4 @@ stages:
         Dockerfile: 'user-service/Dockerfile'
         tags: |
           $(Build.BuildId)
-          latest
-
-    - script: |
-        for image in frontend metrics-service user-service; do
-          echo "Scanning ${image} container image"
-          trivy image --severity HIGH,CRITICAL --exit-code 1 ${{ parameters.acrName }}/${image}:$(Build.BuildId)
-        done
-      displayName: 'Scan Container Images'
-      continueOnError: true 
+          latest 
