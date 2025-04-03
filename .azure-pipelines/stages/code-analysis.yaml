@@ -79,6 +79,7 @@ stages:
     - checkout: self
       fetchDepth: 0
 
+    # Frontend build and scan
     - task: Docker@2
       displayName: 'Build frontend Docker image'
       inputs:
@@ -88,7 +89,7 @@ stages:
         tags: |
           latest
           $(Build.BuildId)
-        arguments: '--no-cache'
+        arguments: '--no-cache --build-arg NODE_ENV=production'
 
     - task: Docker@2
       displayName: 'Scan frontend Docker image'
@@ -97,11 +98,75 @@ stages:
         image: 'frontend:latest'
         severity: 'HIGH,CRITICAL'
         failOnSeverity: 'HIGH'
-        outputFile: 'docker-scan-results.json'
+        outputFile: 'docker-scan-frontend-results.json'
 
+    # User service build and scan
+    - task: Docker@2
+      displayName: 'Build user service Docker image'
+      inputs:
+        command: 'build'
+        Dockerfile: 'services/user/Dockerfile'
+        repository: 'user-service'
+        tags: |
+          latest
+          $(Build.BuildId)
+        arguments: '--no-cache --build-arg NODE_ENV=production'
+
+    - task: Docker@2
+      displayName: 'Scan user service Docker image'
+      inputs:
+        command: 'scan'
+        image: 'user-service:latest'
+        severity: 'HIGH,CRITICAL'
+        failOnSeverity: 'HIGH'
+        outputFile: 'docker-scan-user-results.json'
+
+    # Metrics service build and scan
+    - task: Docker@2
+      displayName: 'Build metrics service Docker image'
+      inputs:
+        command: 'build'
+        Dockerfile: 'services/metrics/Dockerfile'
+        repository: 'metrics-service'
+        tags: |
+          latest
+          $(Build.BuildId)
+        arguments: '--no-cache --build-arg NODE_ENV=production'
+
+    - task: Docker@2
+      displayName: 'Scan metrics service Docker image'
+      inputs:
+        command: 'scan'
+        image: 'metrics-service:latest'
+        severity: 'HIGH,CRITICAL'
+        failOnSeverity: 'HIGH'
+        outputFile: 'docker-scan-metrics-results.json'
+
+    # Analytics service build and scan
+    - task: Docker@2
+      displayName: 'Build analytics service Docker image'
+      inputs:
+        command: 'build'
+        Dockerfile: 'services/analytics/Dockerfile'
+        repository: 'analytics-service'
+        tags: |
+          latest
+          $(Build.BuildId)
+        arguments: '--no-cache --build-arg NODE_ENV=production'
+
+    - task: Docker@2
+      displayName: 'Scan analytics service Docker image'
+      inputs:
+        command: 'scan'
+        image: 'analytics-service:latest'
+        severity: 'HIGH,CRITICAL'
+        failOnSeverity: 'HIGH'
+        outputFile: 'docker-scan-analytics-results.json'
+
+    # Publish all scan results
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Docker scan results'
       inputs:
-        targetPath: 'docker-scan-results.json'
+        targetPath: 'docker-scan-*.json'
         artifact: 'docker-scan-results'
         publishLocation: 'pipeline' 
