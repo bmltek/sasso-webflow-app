@@ -7,10 +7,10 @@ COPY package*.json ./
 RUN npm install --production --no-audit --no-fund
 
 # Copy source code and configuration files
-COPY src/ ./src/
-COPY vitest.config.js ./
-COPY package.json ./
-COPY package-lock.json ./
+COPY ./src ./src
+COPY ./vitest.config.js ./
+COPY ./package.json ./
+COPY ./package-lock.json ./
 
 # Set environment variables
 ENV NODE_ENV=production
