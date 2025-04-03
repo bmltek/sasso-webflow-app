@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: sasso
+  namespace: sasso-webflow
 data:
   NODE_ENV: "production"
   METRICS_SERVICE_URL: "http://metrics-service:4003"
