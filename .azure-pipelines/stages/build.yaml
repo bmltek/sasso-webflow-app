@@ -21,6 +21,7 @@ stages:
         command: 'buildAndPush'
         Dockerfile: 'frontend/Dockerfile'
         context: 'frontend'
+        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app'
         tags: |
           $(Build.BuildId)
           latest
@@ -33,6 +34,7 @@ stages:
         command: 'buildAndPush'
         Dockerfile: 'services/analytics/Dockerfile'
         context: 'services/analytics'
+        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app'
         tags: |
           $(Build.BuildId)
           latest
@@ -45,6 +47,7 @@ stages:
         command: 'buildAndPush'
         Dockerfile: 'services/metrics/Dockerfile'
         context: 'services/metrics'
+        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app'
         tags: |
           $(Build.BuildId)
           latest
@@ -57,6 +60,7 @@ stages:
         command: 'buildAndPush'
         Dockerfile: 'services/user-management/Dockerfile'
         context: 'services/user-management'
+        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app'
         tags: |
           $(Build.BuildId)
           latest 
