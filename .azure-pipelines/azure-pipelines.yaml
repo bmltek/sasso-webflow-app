@@ -8,7 +8,7 @@ trigger:
       - '.azure-pipelines/**'
 
 variables:
-  - group: sasso-webflow-variables
+  - group: AKS-Variables
   - name: ACR_NAME
     value: $(ACR_NAME)
   - name: DOCKER_BUILDKIT
