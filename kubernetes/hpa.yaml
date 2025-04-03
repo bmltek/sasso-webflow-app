@@ -2,7 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: metrics-service-hpa
-  namespace: sasso
+  namespace: sasso-webflow
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
