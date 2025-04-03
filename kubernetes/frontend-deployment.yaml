@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ${acrName}/frontend:latest
+        image: sasso-webflow.azurecr.io/frontend:latest
         ports:
         - containerPort: 3000
         envFrom:

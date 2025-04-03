@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: ${acrName}/user-service:latest
+        image: sasso-webflow.azurecr.io/user-service:latest
         ports:
         - containerPort: 4002
         envFrom:
