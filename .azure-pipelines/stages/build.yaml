@@ -54,8 +54,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'user-service'
         command: 'buildAndPush'
-        Dockerfile: 'services/user/Dockerfile'
-        context: 'services/user'
+        Dockerfile: 'services/user-management/Dockerfile'
+        context: 'services/user-management'
         tags: |
           $(Build.BuildId)
           latest 
