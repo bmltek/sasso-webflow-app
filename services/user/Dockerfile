@@ -1,32 +1,18 @@
-FROM node:20-alpine as builder
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install production dependencies only
 COPY package*.json ./
+RUN npm ci --only=production --legacy-peer-deps
 
-# Install dependencies
-RUN npm ci --legacy-peer-deps
-
-# Copy source code
-COPY . .
+# Copy only the necessary source files
+COPY src/ ./src/
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=4001
 ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/userdb
-
-# Production stage
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy package files and install production dependencies
-COPY package*.json ./
-RUN npm ci --only=production --legacy-peer-deps
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \

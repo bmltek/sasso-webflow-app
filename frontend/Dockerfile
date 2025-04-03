@@ -15,7 +15,7 @@ COPY . .
 ENV NODE_ENV=production
 ENV VITE_API_URL=http://localhost:3000
 
-# Build the application
+# Build the application with source maps
 RUN npm run build
 
 # Production stage
