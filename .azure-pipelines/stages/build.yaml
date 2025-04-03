@@ -11,6 +11,8 @@ stages:
     steps:
     - checkout: self
       displayName: 'Checkout code'
+      inputs:
+        path: 'sasso-webflow-app'
 
     - task: Docker@2
       displayName: 'Build and push frontend'
@@ -18,8 +20,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'frontend'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/frontend/Dockerfile'
-        context: 'sasso-webflow-app/frontend'
+        Dockerfile: 'frontend/Dockerfile'
+        context: 'frontend'
         tags: |
           $(Build.BuildId)
           latest
@@ -30,8 +32,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'analytics-service'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/services/analytics/Dockerfile'
-        context: 'sasso-webflow-app/services/analytics'
+        Dockerfile: 'services/analytics/Dockerfile'
+        context: 'services/analytics'
         tags: |
           $(Build.BuildId)
           latest
@@ -42,8 +44,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'metrics-service'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/services/metrics/Dockerfile'
-        context: 'sasso-webflow-app/services/metrics'
+        Dockerfile: 'services/metrics/Dockerfile'
+        context: 'services/metrics'
         tags: |
           $(Build.BuildId)
           latest
@@ -54,8 +56,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'user-service'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/services/user-management/Dockerfile'
-        context: 'sasso-webflow-app/services/user-management'
+        Dockerfile: 'services/user-management/Dockerfile'
+        context: 'services/user-management'
         tags: |
           $(Build.BuildId)
           latest 
