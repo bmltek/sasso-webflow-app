@@ -41,6 +41,7 @@ stages:
         action: 'deploy'
         namespace: 'sasso-webflow'
         manifests: 'kubernetes/config.yaml'
+        kubernetesServiceEndpoint: 'KUBERNETES-CONNECTION'
 
     - task: KubernetesManifest@1
       displayName: 'Deploy Services'
@@ -48,6 +49,7 @@ stages:
         action: 'deploy'
         namespace: 'sasso-webflow'
         manifests: 'kubernetes/services.yaml'
+        kubernetesServiceEndpoint: 'KUBERNETES-CONNECTION'
 
     - task: KubernetesManifest@1
       displayName: 'Deploy Applications'
@@ -58,6 +60,7 @@ stages:
           kubernetes/metrics-service.yaml
           kubernetes/user-deployment.yaml
           kubernetes/frontend-deployment.yaml
+        kubernetesServiceEndpoint: 'KUBERNETES-CONNECTION'
 
     - task: KubernetesManifest@1
       displayName: 'Deploy HPA'
@@ -65,6 +68,7 @@ stages:
         action: 'deploy'
         namespace: 'sasso-webflow'
         manifests: 'kubernetes/hpa.yaml'
+        kubernetesServiceEndpoint: 'KUBERNETES-CONNECTION'
 
     - task: Bash@3
       displayName: 'Verify Deployment'
