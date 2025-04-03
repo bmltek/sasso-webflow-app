@@ -15,11 +15,21 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'frontend'
         command: 'buildAndPush'
-        Dockerfile: 'frontend/Dockerfile'
+        Dockerfile: 'sasso-webflow-app/frontend/Dockerfile'
         tags: |
           $(Build.BuildId)
           latest
-        arguments: '--build-arg ACR_NAME=$(ACR_NAME)'
+
+    - task: Docker@2
+      displayName: 'Build and push analytics service'
+      inputs:
+        containerRegistry: 'ACR.sasso-webflow'
+        repository: 'analytics-service'
+        command: 'buildAndPush'
+        Dockerfile: 'sasso-webflow-app/services/analytics/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
 
     - task: Docker@2
       displayName: 'Build and push metrics service'
@@ -27,11 +37,10 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'metrics-service'
         command: 'buildAndPush'
-        Dockerfile: 'metrics-service/Dockerfile'
+        Dockerfile: 'sasso-webflow-app/services/metrics/Dockerfile'
         tags: |
           $(Build.BuildId)
           latest
-        arguments: '--build-arg ACR_NAME=$(ACR_NAME)'
 
     - task: Docker@2
       displayName: 'Build and push user service'
@@ -39,8 +48,7 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'user-service'
         command: 'buildAndPush'
-        Dockerfile: 'user-service/Dockerfile'
+        Dockerfile: 'sasso-webflow-app/services/user/Dockerfile'
         tags: |
           $(Build.BuildId)
-          latest
-        arguments: '--build-arg ACR_NAME=$(ACR_NAME)' 
+          latest 
