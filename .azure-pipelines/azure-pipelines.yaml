@@ -25,4 +25,6 @@ stages:
 
   - template: stages/deploy.yaml
     parameters:
+      resourceGroup: 'sasso-dev-rg'
+      aksCluster: 'sasso-dev-aks'
       acrName: $(ACR_NAME) 
