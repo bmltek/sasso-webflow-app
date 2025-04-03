@@ -1,0 +1,32 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'sasso-webflow-app/**'
+      - '.azure-pipelines/**'
+
+variables:
+  - group: sasso-webflow-variables
+  - name: ACR_NAME
+    value: $(ACR_NAME)
+  - name: DOCKER_BUILDKIT
+    value: 1
+
+stages:
+  - template: stages/code-analysis.yaml
+    parameters:
+      acrName: $(ACR_NAME)
+
+  - template: stages/build.yaml
+    parameters:
+      acrName: $(ACR_NAME)
+
+  - template: stages/security-scan.yaml
+    parameters:
+      acrName: $(ACR_NAME)
+
+  - template: stages/deploy.yaml
+    parameters:
+      acrName: $(ACR_NAME) 

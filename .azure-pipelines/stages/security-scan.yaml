@@ -5,7 +5,6 @@ parameters:
 stages:
 - stage: SecurityScan
   displayName: 'Security Scanning'
-  dependsOn: Build
   jobs:
   - job: TrivyScan
     steps:
