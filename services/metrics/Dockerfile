@@ -6,8 +6,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --production --no-audit --no-fund
 
-# Copy only the necessary source files
-COPY src/ ./src/
+# Copy source code
+COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
