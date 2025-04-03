@@ -13,6 +13,8 @@ variables:
     value: 1
   - name: NODE_VERSION
     value: '20.x'
+  - name: ACR_NAME
+    value: 'sassoacruhosmrg6.azurecr.io'
 
 stages:
   - stage: Build
@@ -68,4 +70,4 @@ stages:
               manifests: |
                 ./sasso-webflow-app/helm/microflow/templates/*.yaml
               containers: |
-                sassoacruhosmrg6.azurecr.io/frontend:$(Build.BuildId) 
+                $(ACR_NAME)/frontend:$(Build.BuildId) 
