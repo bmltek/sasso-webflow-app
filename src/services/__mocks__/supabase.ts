@@ -18,9 +18,23 @@ export const supabaseMock = {
     signInWithPassword: jest.fn(),
     signUp: jest.fn(),
     signOut: jest.fn(),
-    getUser: jest.fn()
+    getUser: jest.fn(),
   },
-  from: jest.fn().mockImplementation(() => createMockQuery())
+  from: jest.fn(),
+  rpc: jest.fn(),
+};
+
+export const mockUser = {
+  id: 'test-user-id',
+  email: 'test@example.com',
+  role: 'user',
+};
+
+export const mockSession = {
+  access_token: 'test-token',
+  refresh_token: 'test-refresh-token',
+  expires_in: 3600,
+  user: mockUser,
 };
 
 export default supabaseMock; 

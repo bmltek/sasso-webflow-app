@@ -2,20 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files and install production dependencies only
+# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --production --no-audit --no-fund
+RUN npm install --production
 
 # Copy source code and configuration files
 COPY ./src ./src
 COPY ./vitest.config.js ./
-COPY ./package.json ./
-COPY ./package-lock.json ./
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=4003
-ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/metricsdb
+ENV DATABASE_URL=postgresql://user:password@host:5432/dbname
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \

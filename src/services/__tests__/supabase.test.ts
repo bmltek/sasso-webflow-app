@@ -1,4 +1,4 @@
-import { supabaseMock } from '../__mocks__/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { auth, database } from '../supabase';
 
 // Mock environment variables
@@ -9,13 +9,26 @@ jest.mock('../env', () => ({
   }
 }));
 
-// Mock Supabase
+// Mock Supabase client
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: () => supabaseMock
+  createClient: jest.fn(),
 }));
 
 describe('Supabase Service', () => {
+  const supabaseMock = {
+    auth: {
+      signInWithPassword: jest.fn(),
+      signUp: jest.fn(),
+      signOut: jest.fn(),
+      getUser: jest.fn(),
+    },
+  };
+
   beforeEach(() => {
+    (createClient as jest.Mock).mockReturnValue(supabaseMock);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
