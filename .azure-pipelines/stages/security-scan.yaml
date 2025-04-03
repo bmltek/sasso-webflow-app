@@ -11,7 +11,7 @@ stages:
     - task: Docker@2
       inputs:
         command: 'login'
-        containerRegistry: 'acr-connection'
+        containerRegistry: 'ACR.sasso-webflow'
         repository: '$(ACR_NAME).azurecr.io'
       displayName: 'Login to ACR'
 
