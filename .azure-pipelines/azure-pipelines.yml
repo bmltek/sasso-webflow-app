@@ -23,6 +23,11 @@ stages:
     parameters:
       acrName: $(ACR_NAME)
 
+  - template: stages/security-scan.yaml
+    parameters:
+      acrName: $(ACR_NAME)
+    condition: false  # This will prevent the security scan stage from running
+
   - template: stages/deploy.yaml
     parameters:
       acrName: $(ACR_NAME) 
