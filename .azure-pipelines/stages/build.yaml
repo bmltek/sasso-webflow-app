@@ -9,14 +9,17 @@ stages:
   jobs:
   - job: BuildImages
     steps:
+    - checkout: self
+      displayName: 'Checkout code'
+
     - task: Docker@2
       displayName: 'Build and push frontend'
       inputs:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'frontend'
         command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/sasso-webflow-app/frontend/Dockerfile'
-        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app/frontend'
+        Dockerfile: 'frontend/Dockerfile'
+        context: 'frontend'
         tags: |
           $(Build.BuildId)
           latest
@@ -27,8 +30,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'analytics-service'
         command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/sasso-webflow-app/services/analytics/Dockerfile'
-        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app/services/analytics'
+        Dockerfile: 'services/analytics/Dockerfile'
+        context: 'services/analytics'
         tags: |
           $(Build.BuildId)
           latest
@@ -39,8 +42,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'metrics-service'
         command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/sasso-webflow-app/services/metrics/Dockerfile'
-        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app/services/metrics'
+        Dockerfile: 'services/metrics/Dockerfile'
+        context: 'services/metrics'
         tags: |
           $(Build.BuildId)
           latest
@@ -51,8 +54,8 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'user-service'
         command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/sasso-webflow-app/services/user/Dockerfile'
-        workingDirectory: '$(Build.SourcesDirectory)/sasso-webflow-app/services/user'
+        Dockerfile: 'services/user/Dockerfile'
+        context: 'services/user'
         tags: |
           $(Build.BuildId)
           latest 
