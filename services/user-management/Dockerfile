@@ -1,3 +1,14 @@
+FROM node:20-alpine as builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies to generate lock file
+RUN npm install --no-audit --no-fund
+
+# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
