@@ -37,7 +37,7 @@ stages:
           - task: Docker@2
             displayName: 'Build and Push Frontend Image'
             inputs:
-              containerRegistry: $(ACR_SERVICE_CONNECTION)
+              containerRegistry: 'ACR.sasso-webflow'
               repository: 'frontend'
               command: buildAndPush
               Dockerfile: sasso-webflow-app/frontend/Dockerfile
@@ -60,25 +60,12 @@ stages:
             inputs:
               helmVersionToInstall: 'latest'
 
-          - task: AzureCLI@2
+          - task: KubernetesManifest@0
             inputs:
-              azureSubscription: $(AZURE_SUBSCRIPTION)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                az aks get-credentials \
-                  --resource-group $(RESOURCE_GROUP) \
-                  --name $(AKS_CLUSTER_NAME)
-
-          - task: HelmDeploy@0
-            inputs:
-              command: 'upgrade'
-              chartType: 'FilePath'
-              chartPath: './sasso-webflow-app/helm/microflow'
-              releaseName: 'sasso-services'
+              action: 'deploy'
+              kubernetesServiceConnection: 'KUBERNETES-CONNECTION'
               namespace: 'sasso-webflow'
-              arguments: >
-                --install 
-                --create-namespace
-                --set frontend.image.tag=$(Build.BuildId)
-                --values ./sasso-webflow-app/helm/microflow/values.yaml 
+              manifests: |
+                ./sasso-webflow-app/helm/microflow/templates/*.yaml
+              containers: |
+                sassoacruhosmrg6.azurecr.io/frontend:$(Build.BuildId) 
