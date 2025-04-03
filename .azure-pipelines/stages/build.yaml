@@ -15,7 +15,7 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'frontend'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/frontend/Dockerfile'
+        Dockerfile: 'frontend/Dockerfile'
         tags: |
           $(Build.BuildId)
           latest
@@ -26,7 +26,7 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'analytics-service'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/services/analytics/Dockerfile'
+        Dockerfile: 'services/analytics/Dockerfile'
         tags: |
           $(Build.BuildId)
           latest
@@ -37,7 +37,7 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'metrics-service'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/services/metrics/Dockerfile'
+        Dockerfile: 'services/metrics/Dockerfile'
         tags: |
           $(Build.BuildId)
           latest
@@ -48,7 +48,7 @@ stages:
         containerRegistry: 'ACR.sasso-webflow'
         repository: 'user-service'
         command: 'buildAndPush'
-        Dockerfile: 'sasso-webflow-app/services/user/Dockerfile'
+        Dockerfile: 'services/user/Dockerfile'
         tags: |
           $(Build.BuildId)
           latest 
