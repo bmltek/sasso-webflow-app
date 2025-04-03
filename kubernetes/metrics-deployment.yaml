@@ -15,12 +15,23 @@ spec:
     spec:
       containers:
       - name: metrics-service
-        image: ${acrName}/metrics-service:latest
+        image: sassoacruhosmrg6.azurecr.io/metrics-service:latest
         ports:
         - containerPort: 4003
         envFrom:
         - configMapRef:
             name: app-config
+        env:
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: supabase-secrets
+              key: SUPABASE_URL
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-secrets
+              key: SUPABASE_ANON_KEY
         resources:
           requests:
             cpu: "200m"
@@ -39,4 +50,4 @@ spec:
             path: /health
             port: 4003
           initialDelaySeconds: 15
-          periodSeconds: 20 
+          periodSeconds: 20
