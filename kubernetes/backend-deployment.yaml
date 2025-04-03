@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: analytics-service
   namespace: sasso-webflow
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: backend
+      app: analytics-service
   template:
     metadata:
       labels:
-        app: backend
+        app: analytics-service
     spec:
       containers:
-      - name: backend
-        image: ${acrName}/backend:latest
+      - name: analytics-service
+        image: ${acrName}/analytics-service:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 4001
         envFrom:
         - configMapRef:
             name: app-config
@@ -31,12 +31,12 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: 4001
           initialDelaySeconds: 30
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: 4001
           initialDelaySeconds: 15
           periodSeconds: 20
