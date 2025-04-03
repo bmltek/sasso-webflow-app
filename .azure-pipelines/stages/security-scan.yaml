@@ -32,7 +32,7 @@ stages:
 
     - script: |
         # Scan for secrets
-        trivy fs --security-checks secret .
+        trivy fs --scanners secret .
       displayName: 'Scan for Secrets'
       continueOnError: true
 
@@ -40,7 +40,7 @@ stages:
         # Scan Docker images
         for service in sasso-user-service sasso-analytics-service sasso-metrics-service; do
           echo "Scanning $service image"
-          trivy image $(ACR_NAME).azurecr.io/$service:$(Build.BuildId) --severity HIGH,CRITICAL --exit-code 1
+          trivy image "$(ACR_NAME).azurecr.io/$service:$(Build.BuildId)" --severity HIGH,CRITICAL --exit-code 1
         done
       displayName: 'Scan Docker Images'
       condition: succeededOrFailed() 
