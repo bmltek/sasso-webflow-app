@@ -2,36 +2,27 @@ trigger:
   branches:
     include:
       - main
-      - develop
-      - feature/*
-
-pr:
-  branches:
+  paths:
     include:
-      - main
-      - develop
+      - 'sasso-webflow-app/**'
+      - '.azure-pipelines/**'
 
 variables:
-  - template: variables/vars.yaml
-
-pool:
-  vmImage: 'ubuntu-latest'
+  - group: sasso-webflow-variables
+  - name: ACR_NAME
+    value: $(ACR_NAME)
+  - name: DOCKER_BUILDKIT
+    value: 1
 
 stages:
-- template: stages/code-analysis.yaml
-  parameters:
-    sonarProjectKey: $(SONAR_PROJECT_KEY)
-    sonarOrganization: $(SONAR_ORGANIZATION)
+  - template: stages/code-analysis.yaml
+    parameters:
+      acrName: $(ACR_NAME)
 
-- template: stages/security-scan.yaml
-  parameters:
-    acrName: $(ACR_NAME)
+  - template: stages/build.yaml
+    parameters:
+      acrName: $(ACR_NAME)
 
-- template: stages/build.yaml
-  parameters:
-    acrName: $(ACR_NAME)
-
-- template: stages/deploy.yaml
-  parameters:
-    resourceGroup: $(RESOURCE_GROUP)
-    aksCluster: $(AKS_CLUSTER) 
+  - template: stages/deploy.yaml
+    parameters:
+      acrName: $(ACR_NAME) 
